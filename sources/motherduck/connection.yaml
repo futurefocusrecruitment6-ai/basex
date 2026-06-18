@@ -1,5 +1,5 @@
-# This file was automatically generated
 name: motherduck
 type: motherduck
 options:
+  token: ${MOTHERDUCK_TOKEN}
   database: monitor_hub
