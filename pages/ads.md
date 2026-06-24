@@ -131,10 +131,9 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   />
   <BarChart
     data={ads_by_site}
-    y=display_name
-    x=unique_ads
+    x=display_name
+    y=unique_ads
     title="By website (selected run)"
-    swapXY=true
   />
 </Grid>
 

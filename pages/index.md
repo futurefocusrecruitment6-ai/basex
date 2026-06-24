@@ -246,18 +246,15 @@ ORDER BY
 <Grid cols=2 gap=lg>
   <BarChart
     data={sites_filtered}
-    y=display_name
-    x=alert_count
+    x=display_name
+    y=alert_count
     title="Alerts by site"
-    swapXY=true
   />
   <BarChart
     data={sites_filtered}
-    y=display_name
-    x=unique_ads
+    x=display_name
+    y=unique_ads
     title="Unique ads by site"
-    swapXY=true
-    yFmt=num0
   />
 </Grid>
 
@@ -330,5 +327,23 @@ ORDER BY
 </Tabs>
 
 <p class="text-xs text-base-content/50 mt-8">
-  Click any site row to open scraper detail, history, and alert breakdown. See <a href="/ads">Ads</a> for listing volume analytics.
+  Click any site row to open scraper detail, history, and alert breakdown.
+  See <a href="/ads">Ads</a> for listing volume · <a href="/site">All sites</a>.
 </p>
+
+```all_site_links
+SELECT DISTINCT
+  site_id,
+  display_name,
+  '/site/' || site_id AS href
+FROM motherduck.site_daily
+WHERE site_id IS NOT NULL
+ORDER BY display_name
+```
+
+<!-- Evidence prerender: crawl links for every /site/[site_id] page -->
+<div class="not-prose sr-only" aria-hidden="true">
+{#each all_site_links as s}
+<a href="{s.href}">{s.display_name}</a>
+{/each}
+</div>
