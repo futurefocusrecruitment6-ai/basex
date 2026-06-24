@@ -1,4 +1,17 @@
 {
   "version": "1.0",
-  "customFormats": []
+  "customFormats": [
+    {
+      "formatTag": "pct1",
+      "formatExpression": "num0 + '%'"
+    },
+    {
+      "formatTag": "compact",
+      "formatExpression": "num1k"
+    },
+    {
+      "formatTag": "duration",
+      "formatExpression": "num0 + 's'"
+    }
+  ]
 }

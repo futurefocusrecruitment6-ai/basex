@@ -1,58 +1,61 @@
 appearance:
-  default: system
+  default: light
   switcher: true
 
 theme:
   colorPalettes:
     default:
       light:
-        - "#236aa4"
-        - "#45a1bf"
-        - "#a5cdee"
-        - "#8dacbf"
-        - "#85c7c6"
-        - "#d2c6ac"
-        - "#f4b548"
-        - "#8f3d56"
-        - "#71b9f4"
-        - "#46a485"
+        - "#4f46e5"
+        - "#6366f1"
+        - "#818cf8"
+        - "#0ea5e9"
+        - "#14b8a6"
+        - "#22c55e"
+        - "#eab308"
+        - "#f97316"
+        - "#ef4444"
+        - "#64748b"
       dark:
-        - "#236aa4"
-        - "#45a1bf"
-        - "#a5cdee"
-        - "#8dacbf"
-        - "#85c7c6"
-        - "#d2c6ac"
-        - "#f4b548"
-        - "#8f3d56"
-        - "#71b9f4"
-        - "#46a485"
+        - "#818cf8"
+        - "#6366f1"
+        - "#4f46e5"
+        - "#38bdf8"
+        - "#2dd4bf"
+        - "#4ade80"
+        - "#facc15"
+        - "#fb923c"
+        - "#f87171"
+        - "#94a3b8"
   colorScales:
     default:
       light:
-        - "#ADD8E6"
-        - "#00008B"
+        - "#e0e7ff"
+        - "#312e81"
       dark:
-        - "#ADD8E6"
-        - "#00008B"
+        - "#312e81"
+        - "#e0e7ff"
   colors:
     primary:
-      light: "#2563eb"
-      dark: "#3b82f6"
+      light: "#4f46e5"
+      dark: "#818cf8"
     accent:
-      light: "#c2410c"
-      dark: "#fdba74"
+      light: "#0ea5e9"
+      dark: "#38bdf8"
     base:
       light: "#ffffff"
-      dark: "#09090b"
+      dark: "#0f172a"
+    base-content:
+      light: "#0f172a"
+      dark: "#f1f5f9"
     info:
       light: "#0284c7"
       dark: "#38bdf8"
     positive:
-      light: "#16a34a"
-      dark: "#4ade80"
+      light: "#059669"
+      dark: "#34d399"
     warning:
-      light: "#f8c900"
+      light: "#d97706"
       dark: "#fbbf24"
     negative:
       light: "#dc2626"
@@ -60,13 +63,9 @@ theme:
 
 plugins:
   components:
-    # This loads all of evidence's core charts and UI components
-    # You probably don't want to edit this dependency unless you know what you are doing
     "@evidence-dev/core-components": {}
 
   datasources:
-    # You can add additional datasources here by adding npm packages. 
-    # Make to also add them to `package.json`.
     "@evidence-dev/bigquery": { }
     "@evidence-dev/csv": { }
     "@evidence-dev/databricks": { }

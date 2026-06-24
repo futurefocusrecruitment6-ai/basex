@@ -1,6 +1,14 @@
-# Monitor Hub — All Sites
+---
+title: Overview
+description: Multi-site scraper health, alerts, and listing volume across all monitored websites.
+---
 
-Interactive overview: filter by date, country, site, run place, and status. Click a site row to drill into scrapers and alerts.
+<div class="not-prose mb-8 rounded-2xl border border-base-300/80 bg-gradient-to-br from-primary/5 via-base-100 to-info/5 px-6 py-5 shadow-sm">
+  <p class="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Operations dashboard</p>
+  <p class="text-base text-base-content/70 max-w-3xl leading-relaxed">
+    Daily validation results from every website in the hub. Filter by country, site, or run status — then drill into a site for scraper-level detail.
+  </p>
+</div>
 
 ```partition_dates
 SELECT DISTINCT hub_partition_date::VARCHAR AS hub_partition_date
@@ -34,19 +42,18 @@ WHERE status IS NOT NULL
 ORDER BY status
 ```
 
-## Filters
-
-<Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
-  <DropdownOption value="%" valueLabel="Latest run" />
-</Dropdown>
-
-<Dropdown name=country_filter title="Country" data={country_options} value=country multiple selectAllByDefault />
-
-<Dropdown name=site_filter title="Site" data={site_options} value=site_id label=display_name multiple selectAllByDefault />
-
-<Dropdown name=run_place_filter title="Run place" data={run_place_options} value=run_place multiple selectAllByDefault />
-
-<Dropdown name=status_filter title="Monitor status" data={status_options} value=status multiple selectAllByDefault />
+<div class="not-prose mb-6 rounded-xl border border-base-300/70 bg-base-200/30 px-4 py-4">
+  <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50 mb-3">Filters</p>
+  <Grid cols=5 gap=md>
+    <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
+      <DropdownOption value="%" valueLabel="Latest run" />
+    </Dropdown>
+    <Dropdown name=country_filter title="Country" data={country_options} value=country multiple selectAllByDefault />
+    <Dropdown name=site_filter title="Site" data={site_options} value=site_id label=display_name multiple selectAllByDefault />
+    <Dropdown name=run_place_filter title="Run place" data={run_place_options} value=run_place multiple selectAllByDefault />
+    <Dropdown name=status_filter title="Status" data={status_options} value=status multiple selectAllByDefault />
+  </Grid>
+</div>
 
 ```hub_kpis
 WITH target AS (
@@ -58,7 +65,9 @@ SELECT
   COUNT(*) FILTER (WHERE s.status = 'ok') AS sites_ok,
   COALESCE(SUM(s.alert_count), 0) AS total_alerts,
   COUNT(*) FILTER (WHERE s.status = 'missing') AS sites_missing,
+  COUNT(*) FILTER (WHERE s.status = 'failed') AS sites_failed,
   COUNT(*) AS sites_shown,
+  COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
   MAX(s.hub_partition_date)::VARCHAR AS partition_date,
   MAX(s.inspect_date)::VARCHAR AS inspect_date
 FROM motherduck.site_daily s
@@ -84,7 +93,13 @@ SELECT
   CASE
     WHEN s.github_username IS NOT NULL AND s.repo IS NOT NULL
     THEN 'https://github.com/' || s.github_username || '/' || s.repo
-  END AS github_repo_url
+  END AS github_repo_url,
+  CASE s.status
+    WHEN 'ok' THEN 'Healthy'
+    WHEN 'failed' THEN 'Issues'
+    WHEN 'missing' THEN 'No report'
+    ELSE s.status
+  END AS status_label
 FROM motherduck.site_daily s
 CROSS JOIN target t
 WHERE s.hub_partition_date = t.d
@@ -92,7 +107,7 @@ WHERE s.hub_partition_date = t.d
   AND s.site_id IN ${inputs.site_filter.value}
   AND COALESCE(s.run_place, 'github') IN ${inputs.run_place_filter.value}
   AND s.status IN ${inputs.status_filter.value}
-ORDER BY s.display_name
+ORDER BY s.alert_count DESC, s.display_name
 ```
 
 ```alert_trend
@@ -115,7 +130,8 @@ SELECT
   s.hub_partition_date,
   SUM(s.alert_count) AS total_alerts,
   COUNT(*) FILTER (WHERE s.status = 'ok') AS sites_ok,
-  COUNT(*) AS sites_count
+  COUNT(*) AS sites_count,
+  COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads
 FROM motherduck.site_daily s
 INNER JOIN site_scope ss ON s.site_id = ss.site_id
 WHERE s.hub_partition_date >= (SELECT d FROM target) - INTERVAL '30' DAY
@@ -136,7 +152,9 @@ SELECT
   sc.checks_passed,
   sc.checks_total,
   sc.all_passed,
-  sc.files_optional
+  sc.files_optional,
+  sc.unique_ads,
+  sc.ads_source
 FROM motherduck.scraper_daily sc
 INNER JOIN motherduck.site_daily s
   ON s.hub_partition_date = sc.hub_partition_date
@@ -173,93 +191,132 @@ WHERE a.hub_partition_date = t.d
   AND s.site_id IN ${inputs.site_filter.value}
   AND COALESCE(s.run_place, 'github') IN ${inputs.run_place_filter.value}
   AND s.status IN ${inputs.status_filter.value}
-ORDER BY s.display_name, a.severity, a.scraper
+ORDER BY
+  CASE a.severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END,
+  s.display_name,
+  a.scraper
 ```
 
-<BigValue data={hub_kpis} value=sites_ok title="Sites OK" />
-<BigValue data={hub_kpis} value=total_alerts title="Total alerts" />
-<BigValue data={hub_kpis} value=sites_missing title="Sites missing" />
-<BigValue data={hub_kpis} value=sites_shown title="Sites shown" />
+<p class="text-sm text-base-content/60 mb-4">
+  Partition <strong>{hub_kpis[0].partition_date}</strong> · listing date <strong>{hub_kpis[0].inspect_date}</strong>
+</p>
 
-Partition **{hub_kpis[0].partition_date}** · inspect date **{hub_kpis[0].inspect_date}**
+<Grid cols=5 gap=md>
+  <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
+  <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" />
+  <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
+  <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
+  <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
+</Grid>
 
-## Trends (last 30 days)
+<Tabs id="hub-main" color=primary fullWidth=true>
 
-<LineChart
-  data={alert_trend}
-  x=hub_partition_date
-  y=total_alerts
-  title="Alerts across hub runs"
-/>
+<Tab label="Trends" id="trends">
+
+<Grid cols=2 gap=lg>
+  <LineChart
+    data={alert_trend}
+    x=hub_partition_date
+    y=total_alerts
+    title="Alerts — 30 day trend"
+    yAxisTitle="Alerts"
+  />
+  <LineChart
+    data={alert_trend}
+    x=hub_partition_date
+    y=total_unique_ads
+    title="Unique ads — 30 day trend"
+    yAxisTitle="Listings"
+    yFmt=num0
+  />
+</Grid>
 
 <LineChart
   data={alert_trend}
   x=hub_partition_date
   y=sites_ok
-  title="Sites OK across hub runs"
+  title="Healthy sites — 30 day trend"
+  yAxisTitle="Sites OK"
 />
 
-## Sites overview
+</Tab>
 
-Click a row to open the site detail page (scrapers + alerts).
+<Tab label="Sites" id="sites">
 
-<BarChart
-  data={sites_filtered}
-  y=display_name
-  x=alert_count
-  title="Alerts by site"
-/>
-
-<BarChart
-  data={sites_filtered}
-  y=display_name
-  x={['scrapers_passed', 'scrapers_failed']}
-  title="Scrapers passed vs failed"
-  type=stacked
-/>
+<Grid cols=2 gap=lg>
+  <BarChart
+    data={sites_filtered}
+    y=display_name
+    x=alert_count
+    title="Alerts by site"
+    swapXY=true
+  />
+  <BarChart
+    data={sites_filtered}
+    y=display_name
+    x=unique_ads
+    title="Unique ads by site"
+    swapXY=true
+    yFmt=num0
+  />
+</Grid>
 
 <DataTable
   data={sites_filtered}
   link=site_link
   search=true
-  rows=20
+  rows=25
   emptySet=pass
   emptyMessage="No sites match the current filters."
 >
   <Column id=display_name title="Site" />
   <Column id=country />
+  <Column id=status_label title="Status" />
+  <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=scrapers_passed title="Passed" />
+  <Column id=scrapers_total title="Scrapers" />
+  <Column id=pass_pct title="Pass rate" fmt='0.0"%"' />
+  <Column id=alert_count title="Alerts" />
   <Column id=run_place title="Run place" />
   <Column id=schedule />
-  <Column id=status title="Monitor result" />
-  <Column id=github_username title="GitHub user" />
-  <Column id=repo title="Repository" />
-  <Column id=github_repo_url title="GitHub" contentType=link linkLabel="Open ↗" openInNewTab=true />
-  <Column id=workflow_name title="Workflow" />
-  <Column id=workflow_status title="Workflow status" />
-  <Column id=workflow_duration_sec title="Duration (sec)" />
-  <Column id=workflow_run_number title="Run #" />
-  <Column id=scrapers_passed title="Passed" />
-  <Column id=scrapers_total title="Total scrapers" />
-  <Column id=pass_pct title="Pass %" fmt='0.0"%"' />
-  <Column id=alert_count title="Alerts" />
-  <Column id=report_fallback title="Stale report?" />
+  <Column id=workflow_status title="CI status" />
+  <Column id=report_fallback title="Stale?" />
+  <Column id=github_repo_url title="Repo" contentType=link linkLabel="GitHub ↗" openInNewTab=true />
 </DataTable>
 
-## Scrapers (filtered)
+</Tab>
 
-<DataTable data={scrapers_filtered} search=true rows=15 emptySet=pass emptyMessage="No scraper rows for the current filters.">
+<Tab label="Scrapers" id="scrapers">
+
+<DataTable
+  data={scrapers_filtered}
+  search=true
+  rows=20
+  emptySet=pass
+  emptyMessage="No scraper rows for the current filters."
+>
   <Column id=display_name title="Site" />
   <Column id=scraper />
+  <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=ads_source title="Count source" />
   <Column id=files_found title="Files" />
-  <Column id=checks_passed title="Passed" />
-  <Column id=checks_total title="Total checks" />
-  <Column id=all_passed title="All passed?" />
+  <Column id=checks_passed title="Checks passed" />
+  <Column id=checks_total title="Checks total" />
+  <Column id=all_passed title="Passed?" />
   <Column id=files_optional title="Optional?" />
 </DataTable>
 
-## Alerts (filtered)
+</Tab>
 
-<DataTable data={alerts_filtered} search=true rows=15 emptySet=pass emptyMessage="No alerts for the current filters.">
+<Tab label="Alerts" id="alerts">
+
+<DataTable
+  data={alerts_filtered}
+  search=true
+  rows=20
+  emptySet=pass
+  emptyMessage="No alerts — all scrapers passed for the current filters."
+>
   <Column id=display_name title="Site" />
   <Column id=scraper />
   <Column id=severity />
@@ -267,3 +324,11 @@ Click a row to open the site detail page (scrapers + alerts).
   <Column id=check_name title="Check" />
   <Column id=detail />
 </DataTable>
+
+</Tab>
+
+</Tabs>
+
+<p class="text-xs text-base-content/50 mt-8">
+  Click any site row to open scraper detail, history, and alert breakdown. See <a href="/ads">Ads</a> for listing volume analytics.
+</p>
