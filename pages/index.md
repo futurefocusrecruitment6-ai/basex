@@ -3,9 +3,9 @@ title: Overview
 description: Multi-site scraper health, alerts, and listing volume across all monitored websites.
 ---
 
-<div class="not-prose mb-8 rounded-2xl border border-base-300/80 bg-gradient-to-br from-primary/5 via-base-100 to-info/5 px-6 py-5 shadow-sm">
-  <p class="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Operations dashboard</p>
-  <p class="text-base text-base-content/70 max-w-3xl leading-relaxed">
+<div class="not-prose dash-hero">
+  <p class="hero-label">Operations dashboard</p>
+  <p class="hero-desc">
     Daily validation results from every website in the hub. Filter by country, site, or run status — then drill into a site for scraper-level detail.
   </p>
 </div>
@@ -42,17 +42,21 @@ WHERE status IS NOT NULL
 ORDER BY status
 ```
 
-<div class="not-prose mb-6 rounded-xl border border-base-300/70 bg-base-200/30 px-4 py-4">
-  <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50 mb-3">Filters</p>
-  <Grid cols=5 gap=md>
+<div class="not-prose dash-filter-bar">
+  <p class="filter-label">Filters</p>
+  <Grid cols=4 gap=md>
     <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
       <DropdownOption value="%" valueLabel="Latest run" />
     </Dropdown>
     <Dropdown name=country_filter title="Country" data={country_options} value=country multiple selectAllByDefault />
     <Dropdown name=site_filter title="Site" data={site_options} value=site_id label=display_name multiple selectAllByDefault />
     <Dropdown name=run_place_filter title="Run place" data={run_place_options} value=run_place multiple selectAllByDefault />
-    <Dropdown name=status_filter title="Status" data={status_options} value=status multiple selectAllByDefault />
   </Grid>
+  <div style="margin-top: 0.75rem;">
+    <Grid cols=4 gap=md>
+      <Dropdown name=status_filter title="Status" data={status_options} value=status multiple selectAllByDefault />
+    </Grid>
+  </div>
 </div>
 
 ```hub_kpis
@@ -197,41 +201,31 @@ ORDER BY
   a.scraper
 ```
 
-<div class="not-prose mb-6 flex items-center gap-2 text-sm text-base-content/60">
-  <span class="inline-flex items-center rounded-md border border-base-300/70 bg-base-200/50 px-2.5 py-0.5 text-xs font-medium">
-    Partition <strong class="ml-1 text-base-content">{hub_kpis[0].partition_date}</strong>
-  </span>
-  <span class="text-base-content/30">·</span>
-  <span class="inline-flex items-center rounded-md border border-base-300/70 bg-base-200/50 px-2.5 py-0.5 text-xs font-medium">
-    Listing date <strong class="ml-1 text-base-content">{hub_kpis[0].inspect_date}</strong>
-  </span>
+<div class="not-prose" style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
+  <span class="dash-meta-pill">Partition <strong>{hub_kpis[0].partition_date}</strong></span>
+  <span class="dash-meta-pill">Listing date <strong>{hub_kpis[0].inspect_date}</strong></span>
+  <span class="dash-meta-pill">Sites shown <strong>{hub_kpis[0].sites_shown}</strong></span>
 </div>
 
-<!-- Health signals — sites that are ok vs. problem states -->
-<div class="not-prose mb-2">
-  <p class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">Health</p>
-  <Grid cols=3 gap=md>
-    <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
-    <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
-    <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
-  </Grid>
-</div>
+<Grid cols=4 gap=md>
+  <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
+  <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 />
+  <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
+  <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
+</Grid>
 
-<!-- Volume signals — separated so they don't compete with health KPIs -->
-<div class="not-prose mb-6">
-  <p class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">Volume</p>
-  <Grid cols=2 gap=md>
-    <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 />
-    <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
-  </Grid>
-</div>
+<div style="height:0.5rem"></div>
+
+<Grid cols=2 gap=md>
+  <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
+  <BigValue data={hub_kpis} value=sites_shown title="Total in scope" />
+</Grid>
 
 <Tabs id="hub-main" color=primary fullWidth=true>
 
 <Tab label="Trends" id="trends">
 
-<!-- All 3 trend metrics at equal visual weight — removes the orphan full-width chart -->
-<Grid cols=3 gap=lg>
+<Grid cols=2 gap=lg>
   <LineChart
     data={alert_trend}
     x=hub_partition_date
@@ -247,18 +241,23 @@ ORDER BY
     yAxisTitle="Listings"
     yFmt=num0
   />
-  <LineChart
-    data={alert_trend}
-    x=hub_partition_date
-    y=sites_ok
-    title="Healthy sites — 30 day"
-    yAxisTitle="Sites OK"
-  />
 </Grid>
+
+<LineChart
+  data={alert_trend}
+  x=hub_partition_date
+  y=sites_ok
+  title="Healthy sites — 30 day"
+  yAxisTitle="Sites OK"
+/>
 
 </Tab>
 
 <Tab label="Sites" id="sites">
+
+<div class="not-prose dash-stat-line">
+  <strong>{sites_filtered.length}</strong> sites · <strong>{sites_filtered.filter(d => d.status === 'ok').length}</strong> healthy · <strong>{sites_filtered.filter(d => d.status !== 'ok').length}</strong> need attention
+</div>
 
 <Grid cols=2 gap=lg>
   <BarChart
@@ -272,6 +271,7 @@ ORDER BY
     x=display_name
     y=unique_ads
     title="Unique ads by site"
+    yFmt=num0
   />
 </Grid>
 
@@ -289,12 +289,10 @@ ORDER BY
   <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=scrapers_passed title="Passed" />
   <Column id=scrapers_total title="Scrapers" />
-  <Column id=pass_pct title="Pass rate" fmt='0.0"%"' />
+  <Column id=pass_pct title="Pass %" fmt='0.0"%"' />
   <Column id=alert_count title="Alerts" />
   <Column id=run_place title="Run place" />
-  <Column id=schedule />
-  <Column id=workflow_status title="CI status" />
-  <Column id=report_fallback title="Stale?" />
+  <Column id=workflow_status title="CI" />
   <Column id=github_repo_url title="Repo" contentType=link linkLabel="GitHub ↗" openInNewTab=true />
 </DataTable>
 
@@ -302,9 +300,9 @@ ORDER BY
 
 <Tab label="Scrapers" id="scrapers">
 
-<div class="not-prose mb-4 text-sm text-base-content/60">
-  <strong class="text-base-content">{scrapers_filtered.length}</strong> scraper rows ·
-  <strong class="text-base-content">{scrapers_filtered.filter(d => d.all_passed).length}</strong> all checks passed
+<div class="not-prose dash-stat-line">
+  <strong>{scrapers_filtered.length}</strong> scraper rows ·
+  <strong>{scrapers_filtered.filter(d => d.all_passed).length}</strong> all checks passed
 </div>
 
 <DataTable
@@ -329,20 +327,11 @@ ORDER BY
 
 <Tab label="Alerts" id="alerts">
 
-<!-- Severity distribution — gives instant triage signal before reading the table -->
-<div class="not-prose mb-4 flex flex-wrap gap-2">
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-    Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong>
-  </span>
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
-    High <strong>{alerts_filtered.filter(d => d.severity === 'high').length}</strong>
-  </span>
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700">
-    Medium <strong>{alerts_filtered.filter(d => d.severity === 'medium').length}</strong>
-  </span>
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold text-base-content/60">
-    Low <strong>{alerts_filtered.filter(d => d.severity === 'low').length}</strong>
-  </span>
+<div class="not-prose" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+  <span class="sev-badge sev-critical">Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong></span>
+  <span class="sev-badge sev-high">High <strong>{alerts_filtered.filter(d => d.severity === 'high').length}</strong></span>
+  <span class="sev-badge sev-medium">Medium <strong>{alerts_filtered.filter(d => d.severity === 'medium').length}</strong></span>
+  <span class="sev-badge sev-low">Low <strong>{alerts_filtered.filter(d => d.severity === 'low').length}</strong></span>
 </div>
 
 <DataTable
@@ -364,10 +353,10 @@ ORDER BY
 
 </Tabs>
 
-<p class="text-xs text-base-content/50 mt-8">
-  Click any site row to open scraper detail, history, and alert breakdown.
+<div class="not-prose dash-footer">
+  Click any site row to drill into scraper detail, history, and alert breakdown.
   See <a href="/ads">Ads</a> for listing volume · <a href="/site">All sites</a>.
-</p>
+</div>
 
 ```all_site_links
 SELECT DISTINCT
@@ -379,7 +368,6 @@ WHERE site_id IS NOT NULL
 ORDER BY display_name
 ```
 
-<!-- Evidence prerender: crawl links for every /site/[site_id] page -->
 <div class="not-prose sr-only" aria-hidden="true">
 {#each all_site_links as s}
 <a href="{s.href}">{s.display_name}</a>

@@ -3,9 +3,9 @@ title: Listing volume
 description: Unique ads scraped across all monitored websites and categories.
 ---
 
-<div class="not-prose mb-8 rounded-2xl border border-base-300/80 bg-gradient-to-br from-info/5 via-base-100 to-positive/5 px-6 py-5 shadow-sm">
-  <p class="text-xs font-semibold uppercase tracking-widest text-info mb-1">Data inventory</p>
-  <p class="text-base text-base-content/70 max-w-3xl leading-relaxed">
+<div class="not-prose dash-hero">
+  <p class="hero-label" style="color: hsl(var(--info));">Data inventory</p>
+  <p class="hero-desc">
     Total unique listings collected per site and scraper. Counts prefer deduplicated listing IDs from Excel, with JSON summary as fallback.
   </p>
 </div>
@@ -23,8 +23,8 @@ WHERE country IS NOT NULL
 ORDER BY country
 ```
 
-<div class="not-prose mb-6 rounded-xl border border-base-300/70 bg-base-200/30 px-4 py-4">
-  <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50 mb-3">Filters</p>
+<div class="not-prose dash-filter-bar">
+  <p class="filter-label">Filters</p>
   <Grid cols=2 gap=md>
     <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
       <DropdownOption value="%" valueLabel="Latest run" />
@@ -111,11 +111,11 @@ WHERE sc.hub_partition_date = t.d
 ORDER BY sc.unique_ads DESC NULLS LAST
 ```
 
-<p class="text-sm text-base-content/60 mb-4">
-  Partition <strong>{ads_kpis[0].partition_date}</strong> · listing date <strong>{ads_kpis[0].inspect_date}</strong>
-</p>
+<div class="not-prose" style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
+  <span class="dash-meta-pill">Partition <strong>{ads_kpis[0].partition_date}</strong></span>
+  <span class="dash-meta-pill">Listing date <strong>{ads_kpis[0].inspect_date}</strong></span>
+</div>
 
-<!-- Total unique ads is the primary metric — leads the row; sites_with_data is lowest signal -->
 <Grid cols=3 gap=md>
   <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" fmt=num0 />
   <BigValue data={ads_kpis} value=sites_reporting_ads title="Sites reporting data" />
@@ -129,12 +129,14 @@ ORDER BY sc.unique_ads DESC NULLS LAST
     y=total_unique_ads
     title="Hub total — 60 day trend"
     yAxisTitle="Unique listings"
+    yFmt=num0
   />
   <BarChart
     data={ads_by_site}
     x=display_name
     y=unique_ads
     title="By website (selected run)"
+    yFmt=num0
   />
 </Grid>
 
@@ -142,8 +144,8 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 
 <Tab label="By website" id="by-site">
 
-<div class="not-prose mb-4 text-sm text-base-content/60">
-  <strong class="text-base-content">{ads_by_site.length}</strong> websites · sorted by listing volume descending
+<div class="not-prose dash-stat-line">
+  <strong>{ads_by_site.length}</strong> websites · sorted by listing volume descending
 </div>
 
 <DataTable
@@ -152,7 +154,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   search=true
   rows=25
   emptySet=pass
-  emptyMessage="No ad counts for this partition yet — ensure sites emit unique_ads in report.json."
+  emptyMessage="No ad counts for this partition yet."
 >
   <Column id=display_name title="Website" />
   <Column id=country />
@@ -160,17 +162,17 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=scrapers_passed title="Scrapers OK" />
   <Column id=scrapers_total title="Scrapers" />
-  <Column id=status title="Monitor status" />
-  <Column id=report_fallback title="Stale report?" />
+  <Column id=status title="Status" />
+  <Column id=report_fallback title="Stale?" />
 </DataTable>
 
 </Tab>
 
 <Tab label="By scraper" id="by-scraper">
 
-<div class="not-prose mb-4 text-sm text-base-content/60">
-  <strong class="text-base-content">{ads_by_scraper.length}</strong> scrapers ·
-  <strong class="text-base-content">{ads_by_scraper.filter(d => d.all_passed).length}</strong> validation passed
+<div class="not-prose dash-stat-line">
+  <strong>{ads_by_scraper.length}</strong> scrapers ·
+  <strong>{ads_by_scraper.filter(d => d.all_passed).length}</strong> validation passed
 </div>
 
 <DataTable
@@ -187,13 +189,13 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=ads_source title="Source" />
   <Column id=total_rows title="Excel rows" fmt=num0 />
   <Column id=files_found title="Files" />
-  <Column id=all_passed title="Validation passed?" />
+  <Column id=all_passed title="Passed?" />
 </DataTable>
 
 </Tab>
 
 </Tabs>
 
-<p class="text-xs text-base-content/50 mt-6">
+<div class="not-prose dash-footer">
   <a href="/">← Back to overview</a> · Count source: <code>excel_ids</code> (preferred), <code>json_summary</code>, or <code>excel_rows</code>.
-</p>
+</div>

@@ -1,11 +1,11 @@
 ---
 title: All sites
-description: Index of site detail pages (used for static build).
+description: Index of site detail pages.
 ---
 
-<div class="not-prose mb-8 rounded-2xl border border-base-300/80 bg-gradient-to-br from-base-200/60 via-base-100 to-base-200/30 px-6 py-5 shadow-sm">
-  <p class="text-xs font-semibold uppercase tracking-widest text-base-content/50 mb-1">Site directory</p>
-  <p class="text-base text-base-content/70 max-w-3xl leading-relaxed">
+<div class="not-prose dash-hero">
+  <p class="hero-label" style="color: hsl(var(--base-content) / 0.45);">Site directory</p>
+  <p class="hero-desc">
     All monitored websites. Click a row to open scraper health, alert history, and listing volume for that site.
   </p>
 </div>
@@ -35,10 +35,10 @@ INNER JOIN (
 ORDER BY s.display_name
 ```
 
-<div class="not-prose mb-4 text-sm text-base-content/60">
-  <strong class="text-base-content">{sites.length}</strong> sites ·
-  <strong class="text-base-content">{sites.filter(d => d.status === 'ok').length}</strong> healthy ·
-  <strong class="text-base-content">{sites.filter(d => d.status !== 'ok').length}</strong> need attention
+<div class="not-prose dash-stat-line">
+  <strong>{sites.length}</strong> sites ·
+  <strong>{sites.filter(d => d.status === 'ok').length}</strong> healthy ·
+  <strong>{sites.filter(d => d.status !== 'ok').length}</strong> need attention
 </div>
 
 <DataTable
@@ -57,6 +57,6 @@ ORDER BY s.display_name
   <Column id=site_id title="Site ID" />
 </DataTable>
 
-<p class="text-xs text-base-content/50 mt-6">
+<div class="not-prose dash-footer">
   <a href="/">← Back to overview</a>
-</p>
+</div>

@@ -2,8 +2,8 @@
 title: Site detail
 ---
 
-<div class="not-prose mb-6">
-  <a href="/" class="text-sm text-primary hover:underline">← Back to overview</a>
+<div class="not-prose" style="margin-bottom:1rem;">
+  <a href="/" style="font-size:0.8125rem; font-weight:600; color:hsl(var(--primary)); text-decoration:none;">← Back to overview</a>
 </div>
 
 ```site_partitions
@@ -13,8 +13,8 @@ WHERE s.site_id = '${params.site_id}'
 ORDER BY hub_partition_date DESC
 ```
 
-<div class="not-prose mb-6 rounded-xl border border-base-300/70 bg-base-200/30 px-4 py-4">
-  <Grid cols=1 gap=sm>
+<div class="not-prose dash-filter-bar">
+  <Grid cols=2 gap=md>
     <Dropdown name=partition title="Hub run date" data={site_partitions} value=hub_partition_date defaultValue="%">
       <DropdownOption value="%" valueLabel="Latest run" />
     </Dropdown>
@@ -129,36 +129,30 @@ ORDER BY s.hub_partition_date DESC
 LIMIT 30
 ```
 
-<div class="not-prose mb-6 rounded-2xl border border-base-300/80 bg-base-100 px-6 py-5 shadow-sm">
-  <div class="flex flex-wrap items-start justify-between gap-4">
+<div class="not-prose" style="margin-bottom:1.5rem; border-radius:1rem; border:1px solid hsl(var(--base-300) / 0.6); background:hsl(var(--base-100)); padding:1.5rem; box-shadow:0 1px 3px rgb(0 0 0 / 0.04);">
+  <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:1rem;">
     <div>
-      <!-- Status badge rendered before the site name for instant health signal -->
-      <div class="mb-2">
+      <div style="margin-bottom:0.5rem;">
         {#if site_summary[0].status === 'ok'}
-          <span class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">● Healthy</span>
+          <span class="status-badge status-ok">● Healthy</span>
         {:else if site_summary[0].status === 'failed'}
-          <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">● Issues detected</span>
+          <span class="status-badge status-failed">● Issues detected</span>
         {:else}
-          <span class="inline-flex items-center rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-0.5 text-xs font-semibold text-yellow-700">● {site_summary[0].status_label}</span>
+          <span class="status-badge status-missing">● {site_summary[0].status_label}</span>
         {/if}
       </div>
-      <h1 class="text-2xl font-bold tracking-tight text-base-content">{site_summary[0].display_name}</h1>
-      <p class="text-sm text-base-content/60 mt-1">
+      <h1 style="font-size:1.5rem; font-weight:800; letter-spacing:-0.03em; color:hsl(var(--base-content)); margin:0;">{site_summary[0].display_name}</h1>
+      <p style="font-size:0.8125rem; color:hsl(var(--base-content) / 0.5); margin-top:0.25rem;">
         {site_summary[0].website} · {site_summary[0].country}
       </p>
     </div>
-    <div class="flex flex-col items-end gap-1 text-right">
-      <span class="inline-flex items-center rounded-md border border-base-300/70 bg-base-200/50 px-2.5 py-0.5 text-xs font-medium text-base-content/60">
-        Partition <strong class="ml-1 text-base-content">{site_summary[0].partition_date}</strong>
-      </span>
-      <span class="inline-flex items-center rounded-md border border-base-300/70 bg-base-200/50 px-2.5 py-0.5 text-xs font-medium text-base-content/60">
-        Listing date <strong class="ml-1 text-base-content">{site_summary[0].inspect_date}</strong>
-      </span>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.375rem;">
+      <span class="dash-meta-pill">Partition <strong>{site_summary[0].partition_date}</strong></span>
+      <span class="dash-meta-pill">Listing date <strong>{site_summary[0].inspect_date}</strong></span>
     </div>
   </div>
 </div>
 
-<!-- Status excluded from KPI strip — it's already prominent in the header badge above -->
 <Grid cols=4 gap=md>
   <BigValue data={site_summary} value=unique_ads title="Unique ads" fmt=num0 />
   <BigValue data={site_summary} value=scrapers_passed title="Scrapers passed" />
@@ -167,45 +161,43 @@ LIMIT 30
 </Grid>
 
 <Details title="Run metadata">
-  <!-- Key-value grid avoids the fragile <br /> pattern; consistent 4-column baseline -->
-  <dl class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-4">
+  <div class="not-prose" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:1rem 2rem; font-size:0.8125rem;">
     <div>
-      <dt class="text-xs font-medium uppercase tracking-wide text-base-content/40">Run place</dt>
-      <dd class="mt-0.5 font-semibold text-base-content">{site_summary[0].run_place}</dd>
+      <p class="dash-section-label" style="margin-bottom:0.125rem;">Run place</p>
+      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].run_place}</p>
     </div>
     <div>
-      <dt class="text-xs font-medium uppercase tracking-wide text-base-content/40">Schedule</dt>
-      <dd class="mt-0.5 font-semibold text-base-content">{site_summary[0].schedule}</dd>
+      <p class="dash-section-label" style="margin-bottom:0.125rem;">Schedule</p>
+      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].schedule}</p>
     </div>
     <div>
-      <dt class="text-xs font-medium uppercase tracking-wide text-base-content/40">Workflow</dt>
-      <dd class="mt-0.5 font-semibold text-base-content">{site_summary[0].workflow_name}</dd>
+      <p class="dash-section-label" style="margin-bottom:0.125rem;">Workflow</p>
+      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].workflow_name}</p>
     </div>
     <div>
-      <dt class="text-xs font-medium uppercase tracking-wide text-base-content/40">CI status</dt>
-      <dd class="mt-0.5 font-semibold text-base-content">{site_summary[0].workflow_status}</dd>
+      <p class="dash-section-label" style="margin-bottom:0.125rem;">CI status</p>
+      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].workflow_status}</p>
     </div>
     <div>
-      <dt class="text-xs font-medium uppercase tracking-wide text-base-content/40">Duration</dt>
-      <dd class="mt-0.5 font-semibold text-base-content">{site_summary[0].workflow_duration_sec}s</dd>
+      <p class="dash-section-label" style="margin-bottom:0.125rem;">Duration</p>
+      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].workflow_duration_sec}s</p>
     </div>
     <div>
-      <dt class="text-xs font-medium uppercase tracking-wide text-base-content/40">Repository</dt>
-      <dd class="mt-0.5 font-semibold text-base-content">{site_summary[0].github_username}/{site_summary[0].repo}</dd>
+      <p class="dash-section-label" style="margin-bottom:0.125rem;">Repository</p>
+      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].github_username}/{site_summary[0].repo}</p>
     </div>
     <div>
-      <dt class="text-xs font-medium uppercase tracking-wide text-base-content/40">Stale fallback</dt>
-      <dd class="mt-0.5 font-semibold text-base-content">{site_summary[0].report_fallback}</dd>
+      <p class="dash-section-label" style="margin-bottom:0.125rem;">Stale fallback</p>
+      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].report_fallback}</p>
     </div>
-  </dl>
+  </div>
 </Details>
 
 <Tabs id="site-tabs" color=primary fullWidth=true>
 
 <Tab label="History" id="history">
 
-<!-- 3-column grid keeps all trend metrics at equal visual weight, removes the orphan chart -->
-<Grid cols=3 gap=lg>
+<Grid cols=2 gap=lg>
   <LineChart
     data={site_history}
     x=hub_partition_date
@@ -221,18 +213,24 @@ LIMIT 30
     title="Alerts — 30 runs"
     yAxisTitle="Alerts"
   />
-  <LineChart
-    data={site_history}
-    x=hub_partition_date
-    y=scrapers_passed
-    title="Scrapers passed — 30 runs"
-    yAxisTitle="Count"
-  />
 </Grid>
+
+<LineChart
+  data={site_history}
+  x=hub_partition_date
+  y=scrapers_passed
+  title="Scrapers passed — 30 runs"
+  yAxisTitle="Count"
+/>
 
 </Tab>
 
 <Tab label="Scrapers" id="scrapers">
+
+<div class="not-prose dash-stat-line">
+  <strong>{site_scrapers.length}</strong> scrapers ·
+  <strong>{site_scrapers.filter(d => d.all_passed).length}</strong> all checks passed
+</div>
 
 <DataTable
   data={site_scrapers}
@@ -242,12 +240,12 @@ LIMIT 30
   emptyMessage="No scraper data for this partition."
 >
   <Column id=scraper />
-  <Column id=unique_ads title="Unique ads" />
+  <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=ads_source title="Source" />
   <Column id=files_found title="Files" />
   <Column id=checks_passed title="Passed" />
-  <Column id=checks_total title="Total checks" />
-  <Column id=all_passed title="All passed?" />
+  <Column id=checks_total title="Total" />
+  <Column id=all_passed title="All OK?" />
   <Column id=files_optional title="Optional?" />
 </DataTable>
 
@@ -255,19 +253,11 @@ LIMIT 30
 
 <Tab label="Alerts" id="alerts">
 
-<div class="not-prose mb-4 flex flex-wrap gap-2">
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-    Critical <strong>{site_alerts.filter(d => d.severity === 'critical').length}</strong>
-  </span>
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
-    High <strong>{site_alerts.filter(d => d.severity === 'high').length}</strong>
-  </span>
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700">
-    Medium <strong>{site_alerts.filter(d => d.severity === 'medium').length}</strong>
-  </span>
-  <span class="inline-flex items-center gap-1.5 rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold text-base-content/60">
-    Low <strong>{site_alerts.filter(d => d.severity === 'low').length}</strong>
-  </span>
+<div class="not-prose" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+  <span class="sev-badge sev-critical">Critical <strong>{site_alerts.filter(d => d.severity === 'critical').length}</strong></span>
+  <span class="sev-badge sev-high">High <strong>{site_alerts.filter(d => d.severity === 'high').length}</strong></span>
+  <span class="sev-badge sev-medium">Medium <strong>{site_alerts.filter(d => d.severity === 'medium').length}</strong></span>
+  <span class="sev-badge sev-low">Low <strong>{site_alerts.filter(d => d.severity === 'low').length}</strong></span>
 </div>
 
 <DataTable
