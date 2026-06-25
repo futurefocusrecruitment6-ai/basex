@@ -3,11 +3,18 @@ title: All sites
 description: Index of site detail pages.
 ---
 
-<div class="not-prose dash-hero">
-  <p class="hero-label" style="color: hsl(var(--twc-base-content) / 0.45);">Site directory</p>
-  <p class="hero-desc">
-    All monitored websites. Click a row to open scraper health, alert history, and listing volume for that site.
-  </p>
+<div class="not-prose dash-page">
+
+<header class="dash-page-header">
+  <div>
+    <h1>All sites</h1>
+    <p class="dash-page-desc">Every monitored website. Click a row to open scraper health, alert history, and listing volume for that site.</p>
+  </div>
+  <div class="dash-page-meta">
+    <a href="/" class="dash-back-link" style="margin-bottom:0;">← Overview</a>
+  </div>
+</header>
+
 </div>
 
 ```sites
@@ -35,12 +42,34 @@ INNER JOIN (
 ORDER BY s.display_name
 ```
 
-<div class="not-prose dash-stat-line">
-  <strong>{sites.length}</strong> sites ·
-  <strong>{sites.filter(d => d.status === 'ok').length}</strong> healthy ·
-  <strong>{sites.filter(d => d.status !== 'ok').length}</strong> need attention
+<div class="not-prose dash-kpi-grid cols-3">
+  <div class="dash-kpi-card kpi-neutral">
+    <div class="dash-kpi-top">
+      <span class="dash-kpi-label">Total sites</span>
+      <span class="dash-kpi-icon">◎</span>
+    </div>
+    <div class="dash-kpi-value">{sites.length}</div>
+    <div class="dash-kpi-sub">monitored websites</div>
+  </div>
+  <div class="dash-kpi-card kpi-success">
+    <div class="dash-kpi-top">
+      <span class="dash-kpi-label">Healthy</span>
+      <span class="dash-kpi-icon">✓</span>
+    </div>
+    <div class="dash-kpi-value">{sites.filter(d => d.status === 'ok').length}</div>
+    <div class="dash-kpi-sub">passing validation</div>
+  </div>
+  <div class="dash-kpi-card kpi-warning">
+    <div class="dash-kpi-top">
+      <span class="dash-kpi-label">Need attention</span>
+      <span class="dash-kpi-icon">!</span>
+    </div>
+    <div class="dash-kpi-value">{sites.filter(d => d.status !== 'ok').length}</div>
+    <div class="dash-kpi-sub">failed or missing</div>
+  </div>
 </div>
 
+<div class="not-prose dash-panel" style="padding:0;">
 <DataTable
   data={sites}
   link=site_link
@@ -56,7 +85,4 @@ ORDER BY s.display_name
   <Column id=last_run title="Last run" />
   <Column id=site_id title="Site ID" />
 </DataTable>
-
-<div class="not-prose dash-footer">
-  <a href="/">← Back to overview</a>
 </div>

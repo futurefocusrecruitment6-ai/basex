@@ -3,11 +3,18 @@ title: Listing volume
 description: Unique ads scraped across all monitored websites and categories.
 ---
 
-<div class="not-prose dash-hero">
-  <p class="hero-label" style="color: var(--info);">Data inventory</p>
-  <p class="hero-desc">
-    Total unique listings collected per site and scraper. Counts prefer deduplicated listing IDs from Excel, with JSON summary as fallback.
-  </p>
+<div class="not-prose dash-page">
+
+<header class="dash-page-header">
+  <div>
+    <h1>Listing volume</h1>
+    <p class="dash-page-desc">Total unique listings collected per site and scraper. Counts prefer deduplicated listing IDs from Excel, with JSON summary as fallback.</p>
+  </div>
+  <div class="dash-page-meta">
+    <a href="/" class="dash-back-link" style="margin-bottom:0;">← Overview</a>
+  </div>
+</header>
+
 </div>
 
 ```partition_dates
@@ -111,40 +118,67 @@ WHERE sc.hub_partition_date = t.d
 ORDER BY sc.unique_ads DESC NULLS LAST
 ```
 
-<div class="not-prose" style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; margin-bottom:1.5rem;">
-  <span class="dash-meta-pill">Partition <strong>{ads_kpis[0].partition_date}</strong></span>
-  <span class="dash-meta-pill">Listing date <strong>{ads_kpis[0].inspect_date}</strong></span>
+<div class="not-prose" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+  <span class="dash-meta-pill">Run <strong>{ads_kpis[0].partition_date}</strong></span>
+  <span class="dash-meta-pill">Listings <strong>{ads_kpis[0].inspect_date}</strong></span>
 </div>
 
-<Grid cols=3 gap=md>
-  <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" fmt=num0 />
-  <BigValue data={ads_kpis} value=sites_reporting_ads title="Sites reporting data" />
-  <BigValue data={ads_kpis} value=sites_with_data title="Sites in scope" />
-</Grid>
+<div class="not-prose dash-kpi-grid cols-3">
+  <div class="dash-kpi-card kpi-info">
+    <div class="dash-kpi-top">
+      <span class="dash-kpi-label">Total unique ads</span>
+      <span class="dash-kpi-icon">#</span>
+    </div>
+    <div class="dash-kpi-value">{ads_kpis[0].total_unique_ads.toLocaleString()}</div>
+    <div class="dash-kpi-sub">hub-wide total</div>
+  </div>
+  <div class="dash-kpi-card kpi-success">
+    <div class="dash-kpi-top">
+      <span class="dash-kpi-label">Sites reporting data</span>
+      <span class="dash-kpi-icon">✓</span>
+    </div>
+    <div class="dash-kpi-value">{ads_kpis[0].sites_reporting_ads}</div>
+    <div class="dash-kpi-sub">with ads &gt; 0</div>
+  </div>
+  <div class="dash-kpi-card kpi-neutral">
+    <div class="dash-kpi-top">
+      <span class="dash-kpi-label">Sites in scope</span>
+      <span class="dash-kpi-icon">◎</span>
+    </div>
+    <div class="dash-kpi-value">{ads_kpis[0].sites_with_data}</div>
+    <div class="dash-kpi-sub">filtered countries</div>
+  </div>
+</div>
 
 <Grid cols=2 gap=lg>
-  <LineChart
-    data={ads_trend}
-    x=hub_partition_date
-    y=total_unique_ads
-    title="Hub total — 60 day trend"
-    yAxisTitle="Unique listings"
-    yFmt=num0
-  />
-  <BarChart
-    data={ads_by_site}
-    x=display_name
-    y=unique_ads
-    title="By website (selected run)"
-    yFmt=num0
-  />
+  <div class="dash-chart-card">
+    <LineChart
+      data={ads_trend}
+      x=hub_partition_date
+      y=total_unique_ads
+      title="Hub total — 60 day trend"
+      yAxisTitle="Unique listings"
+      yFmt=num0
+    />
+  </div>
+  <div class="dash-chart-card">
+    <BarChart
+      data={ads_by_site}
+      x=display_name
+      y=unique_ads
+      title="By website (selected run)"
+      yFmt=num0
+    />
+  </div>
 </Grid>
 
 <Tabs id="ads-tabs" color=primary fullWidth=true>
 
 <Tab label="By website" id="by-site">
 
-<div class="not-prose dash-stat-line">
+<div class="not-prose dash-tab-panel">
+
+<div class="dash-stat-line">
   <strong>{ads_by_site.length}</strong> websites · sorted by listing volume descending
 </div>
 
@@ -166,11 +200,15 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=report_fallback title="Stale?" />
 </DataTable>
 
+</div>
+
 </Tab>
 
 <Tab label="By scraper" id="by-scraper">
 
-<div class="not-prose dash-stat-line">
+<div class="not-prose dash-tab-panel">
+
+<div class="dash-stat-line">
   <strong>{ads_by_scraper.length}</strong> scrapers ·
   <strong>{ads_by_scraper.filter(d => d.all_passed).length}</strong> validation passed
 </div>
@@ -192,10 +230,12 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=all_passed title="Passed?" />
 </DataTable>
 
+</div>
+
 </Tab>
 
 </Tabs>
 
 <div class="not-prose dash-footer">
-  <a href="/">← Back to overview</a> · Count source: <code>excel_ids</code> (preferred), <code>json_summary</code>, or <code>excel_rows</code>.
+  Count source: <code>excel_ids</code> (preferred), <code>json_summary</code>, or <code>excel_rows</code>.
 </div>
