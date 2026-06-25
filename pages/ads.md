@@ -115,8 +115,9 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   Partition <strong>{ads_kpis[0].partition_date}</strong> · listing date <strong>{ads_kpis[0].inspect_date}</strong>
 </p>
 
+<!-- Total unique ads is the primary metric — leads the row; sites_with_data is lowest signal -->
 <Grid cols=3 gap=md>
-  <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" />
+  <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" fmt=num0 />
   <BigValue data={ads_kpis} value=sites_reporting_ads title="Sites reporting data" />
   <BigValue data={ads_kpis} value=sites_with_data title="Sites in scope" />
 </Grid>
@@ -141,6 +142,10 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 
 <Tab label="By website" id="by-site">
 
+<div class="not-prose mb-4 text-sm text-base-content/60">
+  <strong class="text-base-content">{ads_by_site.length}</strong> websites · sorted by listing volume descending
+</div>
+
 <DataTable
   data={ads_by_site}
   link=site_link
@@ -152,7 +157,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=display_name title="Website" />
   <Column id=country />
   <Column id=website />
-  <Column id=unique_ads title="Unique ads" />
+  <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=scrapers_passed title="Scrapers OK" />
   <Column id=scrapers_total title="Scrapers" />
   <Column id=status title="Monitor status" />
@@ -162,6 +167,11 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 </Tab>
 
 <Tab label="By scraper" id="by-scraper">
+
+<div class="not-prose mb-4 text-sm text-base-content/60">
+  <strong class="text-base-content">{ads_by_scraper.length}</strong> scrapers ·
+  <strong class="text-base-content">{ads_by_scraper.filter(d => d.all_passed).length}</strong> validation passed
+</div>
 
 <DataTable
   data={ads_by_scraper}
@@ -173,9 +183,9 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=display_name title="Website" />
   <Column id=country />
   <Column id=scraper title="Category / scraper" />
-  <Column id=unique_ads title="Unique ads" />
+  <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=ads_source title="Source" />
-  <Column id=total_rows title="Excel rows" />
+  <Column id=total_rows title="Excel rows" fmt=num0 />
   <Column id=files_found title="Files" />
   <Column id=all_passed title="Validation passed?" />
 </DataTable>

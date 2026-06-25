@@ -197,47 +197,64 @@ ORDER BY
   a.scraper
 ```
 
-<p class="text-sm text-base-content/60 mb-4">
-  Partition <strong>{hub_kpis[0].partition_date}</strong> · listing date <strong>{hub_kpis[0].inspect_date}</strong>
-</p>
+<div class="not-prose mb-6 flex items-center gap-2 text-sm text-base-content/60">
+  <span class="inline-flex items-center rounded-md border border-base-300/70 bg-base-200/50 px-2.5 py-0.5 text-xs font-medium">
+    Partition <strong class="ml-1 text-base-content">{hub_kpis[0].partition_date}</strong>
+  </span>
+  <span class="text-base-content/30">·</span>
+  <span class="inline-flex items-center rounded-md border border-base-300/70 bg-base-200/50 px-2.5 py-0.5 text-xs font-medium">
+    Listing date <strong class="ml-1 text-base-content">{hub_kpis[0].inspect_date}</strong>
+  </span>
+</div>
 
-<Grid cols=5 gap=md>
-  <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
-  <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" />
-  <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
-  <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
-  <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
-</Grid>
+<!-- Health signals — sites that are ok vs. problem states -->
+<div class="not-prose mb-2">
+  <p class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">Health</p>
+  <Grid cols=3 gap=md>
+    <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
+    <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
+    <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
+  </Grid>
+</div>
+
+<!-- Volume signals — separated so they don't compete with health KPIs -->
+<div class="not-prose mb-6">
+  <p class="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-3">Volume</p>
+  <Grid cols=2 gap=md>
+    <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 />
+    <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
+  </Grid>
+</div>
 
 <Tabs id="hub-main" color=primary fullWidth=true>
 
 <Tab label="Trends" id="trends">
 
-<Grid cols=2 gap=lg>
+<!-- All 3 trend metrics at equal visual weight — removes the orphan full-width chart -->
+<Grid cols=3 gap=lg>
   <LineChart
     data={alert_trend}
     x=hub_partition_date
     y=total_alerts
-    title="Alerts — 30 day trend"
+    title="Alerts — 30 day"
     yAxisTitle="Alerts"
   />
   <LineChart
     data={alert_trend}
     x=hub_partition_date
     y=total_unique_ads
-    title="Unique ads — 30 day trend"
+    title="Unique ads — 30 day"
     yAxisTitle="Listings"
     yFmt=num0
   />
+  <LineChart
+    data={alert_trend}
+    x=hub_partition_date
+    y=sites_ok
+    title="Healthy sites — 30 day"
+    yAxisTitle="Sites OK"
+  />
 </Grid>
-
-<LineChart
-  data={alert_trend}
-  x=hub_partition_date
-  y=sites_ok
-  title="Healthy sites — 30 day trend"
-  yAxisTitle="Sites OK"
-/>
 
 </Tab>
 
@@ -285,6 +302,11 @@ ORDER BY
 
 <Tab label="Scrapers" id="scrapers">
 
+<div class="not-prose mb-4 text-sm text-base-content/60">
+  <strong class="text-base-content">{scrapers_filtered.length}</strong> scraper rows ·
+  <strong class="text-base-content">{scrapers_filtered.filter(d => d.all_passed).length}</strong> all checks passed
+</div>
+
 <DataTable
   data={scrapers_filtered}
   search=true
@@ -306,6 +328,22 @@ ORDER BY
 </Tab>
 
 <Tab label="Alerts" id="alerts">
+
+<!-- Severity distribution — gives instant triage signal before reading the table -->
+<div class="not-prose mb-4 flex flex-wrap gap-2">
+  <span class="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+    Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong>
+  </span>
+  <span class="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+    High <strong>{alerts_filtered.filter(d => d.severity === 'high').length}</strong>
+  </span>
+  <span class="inline-flex items-center gap-1.5 rounded-full border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700">
+    Medium <strong>{alerts_filtered.filter(d => d.severity === 'medium').length}</strong>
+  </span>
+  <span class="inline-flex items-center gap-1.5 rounded-full border border-base-300 bg-base-200 px-3 py-1 text-xs font-semibold text-base-content/60">
+    Low <strong>{alerts_filtered.filter(d => d.severity === 'low').length}</strong>
+  </span>
+</div>
 
 <DataTable
   data={alerts_filtered}
