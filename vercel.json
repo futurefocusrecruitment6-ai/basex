@@ -1,6 +1,0 @@
-{
-  "buildCommand": "npm run sources && npm run build",
-  "outputDirectory": "build",
-  "installCommand": "npm install",
-  "framework": null
-}

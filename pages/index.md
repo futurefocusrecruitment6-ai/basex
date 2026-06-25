@@ -1,34 +1,11 @@
 ---
 title: Overview
-description: Multi-site scraper health, alerts, and listing volume across all monitored websites.
+description: Daily validation results from every website in the hub. Filter by country, site, or run status — then drill into a site for scraper-level detail.
 ---
 
-<div class="not-prose dash-page">
-
-<header class="dash-page-header">
-  <div>
-    <h1>Overview</h1>
-    <p class="dash-page-desc">Daily validation results from every website in the hub. Filter by country, site, or run status — then drill into a site for scraper-level detail.</p>
-  </div>
-</header>
-
-<div class="dash-quick-nav">
-  <a href="/ads">
-    <span class="nav-icon">#</span>
-    <div>
-      <div class="nav-label">Listing volume</div>
-      <div class="nav-sub">Ads by site & scraper</div>
-    </div>
-  </a>
-  <a href="/site">
-    <span class="nav-icon">◎</span>
-    <div>
-      <div class="nav-label">All sites</div>
-      <div class="nav-sub">Full site directory</div>
-    </div>
-  </a>
-</div>
-
+<div class="not-prose report-nav">
+  <a href="/ads">Listing volume</a>
+  <a href="/site">All sites</a>
 </div>
 
 ```partition_dates
@@ -63,22 +40,18 @@ WHERE status IS NOT NULL
 ORDER BY status
 ```
 
-<div class="not-prose dash-filter-bar">
-  <p class="filter-label">Filters</p>
-  <Grid cols=4 gap=md>
-    <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
-      <DropdownOption value="%" valueLabel="Latest run" />
-    </Dropdown>
-    <Dropdown name=country_filter title="Country" data={country_options} value=country multiple selectAllByDefault />
-    <Dropdown name=site_filter title="Site" data={site_options} value=site_id label=display_name multiple selectAllByDefault />
-    <Dropdown name=run_place_filter title="Run place" data={run_place_options} value=run_place multiple selectAllByDefault />
-  </Grid>
-  <div style="margin-top: 0.75rem;">
-    <Grid cols=4 gap=md>
-      <Dropdown name=status_filter title="Status" data={status_options} value=status multiple selectAllByDefault />
-    </Grid>
-  </div>
-</div>
+<Grid cols=4 gap=md>
+  <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
+    <DropdownOption value="%" valueLabel="Latest run" />
+  </Dropdown>
+  <Dropdown name=country_filter title="Country" data={country_options} value=country multiple selectAllByDefault />
+  <Dropdown name=site_filter title="Site" data={site_options} value=site_id label=display_name multiple selectAllByDefault />
+  <Dropdown name=run_place_filter title="Run place" data={run_place_options} value=run_place multiple selectAllByDefault />
+</Grid>
+
+<Grid cols=4 gap=md>
+  <Dropdown name=status_filter title="Status" data={status_options} value=status multiple selectAllByDefault />
+</Grid>
 
 ```hub_kpis
 WITH target AS (
@@ -222,123 +195,75 @@ ORDER BY
   a.scraper
 ```
 
-<div class="not-prose" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.25rem;">
-  <span class="dash-meta-pill">Run <strong>{hub_kpis[0].partition_date}</strong></span>
-  <span class="dash-meta-pill">Listings <strong>{hub_kpis[0].inspect_date}</strong></span>
-  <span class="dash-meta-pill">In scope <strong>{hub_kpis[0].sites_shown}</strong></span>
+<div class="not-prose report-context">
+  <span>Run <strong>{hub_kpis[0].partition_date}</strong></span>
+  <span class="ctx-sep">·</span>
+  <span>Listings <strong>{hub_kpis[0].inspect_date}</strong></span>
+  <span class="ctx-sep">·</span>
+  <span><strong>{hub_kpis[0].sites_shown}</strong> sites in scope</span>
 </div>
 
-<div class="not-prose dash-kpi-grid">
-  <div class="dash-kpi-card kpi-success">
-    <div class="dash-kpi-top">
-      <span class="dash-kpi-label">Sites healthy</span>
-      <span class="dash-kpi-icon">✓</span>
-    </div>
-    <div class="dash-kpi-value">{hub_kpis[0].sites_ok}</div>
-    <div class="dash-kpi-sub">of {hub_kpis[0].sites_shown} in scope</div>
-  </div>
-  <div class="dash-kpi-card kpi-info">
-    <div class="dash-kpi-top">
-      <span class="dash-kpi-label">Unique ads</span>
-      <span class="dash-kpi-icon">#</span>
-    </div>
-    <div class="dash-kpi-value">{hub_kpis[0].total_unique_ads.toLocaleString()}</div>
-    <div class="dash-kpi-sub">across filtered sites</div>
-  </div>
-  <div class="dash-kpi-card kpi-warning">
-    <div class="dash-kpi-top">
-      <span class="dash-kpi-label">Open alerts</span>
-      <span class="dash-kpi-icon">!</span>
-    </div>
-    <div class="dash-kpi-value">{hub_kpis[0].total_alerts}</div>
-    <div class="dash-kpi-sub">validation failures</div>
-  </div>
-  <div class="dash-kpi-card kpi-danger">
-    <div class="dash-kpi-top">
-      <span class="dash-kpi-label">Sites with issues</span>
-      <span class="dash-kpi-icon">×</span>
-    </div>
-    <div class="dash-kpi-value">{hub_kpis[0].sites_failed}</div>
-    <div class="dash-kpi-sub">{hub_kpis[0].sites_missing} missing reports</div>
-  </div>
-</div>
+<Grid cols=4 gap=md>
+  <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
+  <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 />
+  <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
+  <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
+</Grid>
 
 <Tabs id="hub-main" color=primary fullWidth=true>
 
 <Tab label="Trends" id="trends">
 
-<div class="not-prose dash-tab-panel">
-
-<div class="dash-section-head" style="margin-bottom:1rem;">
-  <h2 class="dash-section-title">30-day trends</h2>
-  <span class="dash-section-desc">Filtered site scope</span>
-</div>
-
 <Grid cols=2 gap=lg>
-  <div class="dash-chart-card">
-    <LineChart
-      data={alert_trend}
-      x=hub_partition_date
-      y=total_alerts
-      title="Alerts"
-      yAxisTitle="Count"
-    />
-  </div>
-  <div class="dash-chart-card">
-    <LineChart
-      data={alert_trend}
-      x=hub_partition_date
-      y=total_unique_ads
-      title="Unique ads"
-      yAxisTitle="Listings"
-      yFmt=num0
-    />
-  </div>
-</Grid>
-
-<div class="dash-chart-card" style="margin-top:1rem;">
   <LineChart
     data={alert_trend}
     x=hub_partition_date
-    y=sites_ok
-    title="Healthy sites"
-    yAxisTitle="Sites OK"
+    y=total_alerts
+    title="Alerts — 30 day"
+    yAxisTitle="Alerts"
   />
-</div>
+  <LineChart
+    data={alert_trend}
+    x=hub_partition_date
+    y=total_unique_ads
+    title="Unique ads — 30 day"
+    yAxisTitle="Listings"
+    yFmt=num0
+  />
+</Grid>
 
-</div>
+<LineChart
+  data={alert_trend}
+  x=hub_partition_date
+  y=sites_ok
+  title="Healthy sites — 30 day"
+  yAxisTitle="Sites OK"
+/>
 
 </Tab>
 
 <Tab label="Sites" id="sites">
 
-<div class="not-prose dash-tab-panel">
-
-<div class="dash-stat-line">
+<div class="not-prose stat-line">
   <strong>{sites_filtered.length}</strong> sites · <strong>{sites_filtered.filter(d => d.status === 'ok').length}</strong> healthy · <strong>{sites_filtered.filter(d => d.status !== 'ok').length}</strong> need attention
 </div>
 
 <Grid cols=2 gap=lg>
-  <div class="dash-chart-card">
-    <BarChart
-      data={sites_filtered}
-      x=display_name
-      y=alert_count
-      title="Alerts by site"
-    />
-  </div>
-  <div class="dash-chart-card">
-    <BarChart
-      data={sites_filtered}
-      x=display_name
-      y=unique_ads
-      title="Unique ads by site"
-      yFmt=num0
-    />
-  </div>
+  <BarChart
+    data={sites_filtered}
+    x=display_name
+    y=alert_count
+    title="Alerts by site"
+  />
+  <BarChart
+    data={sites_filtered}
+    x=display_name
+    y=unique_ads
+    title="Unique ads by site"
+    yFmt=num0
+  />
 </Grid>
 
-<div style="margin-top:1rem;">
 <DataTable
   data={sites_filtered}
   link=site_link
@@ -359,17 +284,12 @@ ORDER BY
   <Column id=workflow_status title="CI" />
   <Column id=github_repo_url title="Repo" contentType=link linkLabel="GitHub ↗" openInNewTab=true />
 </DataTable>
-</div>
-
-</div>
 
 </Tab>
 
 <Tab label="Scrapers" id="scrapers">
 
-<div class="not-prose dash-tab-panel">
-
-<div class="dash-stat-line">
+<div class="not-prose stat-line">
   <strong>{scrapers_filtered.length}</strong> scraper rows ·
   <strong>{scrapers_filtered.filter(d => d.all_passed).length}</strong> all checks passed
 </div>
@@ -392,13 +312,9 @@ ORDER BY
   <Column id=files_optional title="Optional?" />
 </DataTable>
 
-</div>
-
 </Tab>
 
 <Tab label="Alerts" id="alerts">
-
-<div class="not-prose dash-tab-panel">
 
 <div class="not-prose" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
   <span class="sev-badge sev-critical">Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong></span>
@@ -422,13 +338,11 @@ ORDER BY
   <Column id=detail />
 </DataTable>
 
-</div>
-
 </Tab>
 
 </Tabs>
 
-<div class="not-prose dash-footer">
+<div class="not-prose report-footer">
   Click any site row to drill into scraper detail, history, and alert breakdown.
 </div>
 

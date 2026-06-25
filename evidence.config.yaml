@@ -6,48 +6,54 @@ theme:
   colorPalettes:
     default:
       light:
-        - "#4f46e5"
-        - "#6366f1"
-        - "#818cf8"
+        - "#2563eb"
+        - "#3b82f6"
+        - "#60a5fa"
         - "#0ea5e9"
-        - "#14b8a6"
-        - "#22c55e"
-        - "#eab308"
-        - "#f97316"
+        - "#06b6d4"
+        - "#10b981"
+        - "#84cc16"
+        - "#f59e0b"
         - "#ef4444"
         - "#64748b"
       dark:
-        - "#818cf8"
-        - "#6366f1"
-        - "#4f46e5"
+        - "#60a5fa"
+        - "#3b82f6"
+        - "#2563eb"
         - "#38bdf8"
-        - "#2dd4bf"
-        - "#4ade80"
-        - "#facc15"
-        - "#fb923c"
+        - "#22d3ee"
+        - "#34d399"
+        - "#a3e635"
+        - "#fbbf24"
         - "#f87171"
         - "#94a3b8"
   colorScales:
     default:
       light:
-        - "#e0e7ff"
-        - "#312e81"
+        - "#dbeafe"
+        - "#1e3a8a"
       dark:
-        - "#312e81"
-        - "#e0e7ff"
+        - "#1e3a8a"
+        - "#dbeafe"
   colors:
     primary:
-      light: "#4f46e5"
-      dark: "#818cf8"
+      light: "#2563eb"
+      dark: "#60a5fa"
     accent:
       light: "#0ea5e9"
       dark: "#38bdf8"
     base-100:
       light: "#ffffff"
-      dark: "#0f172a"
+      dark: "#0b1120"
+    base-200:
+      light: "#f8fafc"
+      dark: "#111827"
+    base-300:
+      light: "#e2e8f0"
+      dark: "#1e293b"
     base-content:
       light: "#0f172a"
-      dark: "#f1f5f9"
+      dark: "#e2e8f0"
     info:
       light: "#0284c7"
       dark: "#38bdf8"
