@@ -42,7 +42,7 @@ theme:
     accent:
       light: "#0ea5e9"
       dark: "#38bdf8"
-    base:
+    base-100:
       light: "#ffffff"
       dark: "#0f172a"
     base-content:

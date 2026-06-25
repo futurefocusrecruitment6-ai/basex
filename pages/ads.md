@@ -4,7 +4,7 @@ description: Unique ads scraped across all monitored websites and categories.
 ---
 
 <div class="not-prose dash-hero">
-  <p class="hero-label" style="color: hsl(var(--info));">Data inventory</p>
+  <p class="hero-label" style="color: var(--info);">Data inventory</p>
   <p class="hero-desc">
     Total unique listings collected per site and scraper. Counts prefer deduplicated listing IDs from Excel, with JSON summary as fallback.
   </p>

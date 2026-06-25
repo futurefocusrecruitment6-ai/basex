@@ -3,7 +3,7 @@ title: Site detail
 ---
 
 <div class="not-prose" style="margin-bottom:1rem;">
-  <a href="/" style="font-size:0.8125rem; font-weight:600; color:hsl(var(--primary)); text-decoration:none;">← Back to overview</a>
+  <a href="/" style="font-size:0.8125rem; font-weight:600; color:var(--primary); text-decoration:none;">← Back to overview</a>
 </div>
 
 ```site_partitions
@@ -129,7 +129,7 @@ ORDER BY s.hub_partition_date DESC
 LIMIT 30
 ```
 
-<div class="not-prose" style="margin-bottom:1.5rem; border-radius:1rem; border:1px solid hsl(var(--base-300) / 0.6); background:hsl(var(--base-100)); padding:1.5rem; box-shadow:0 1px 3px rgb(0 0 0 / 0.04);">
+<div class="not-prose" style="margin-bottom:1.5rem; border-radius:1rem; border:1px solid hsl(var(--twc-base-300) / 0.6); background:var(--base-100); padding:1.5rem; box-shadow:0 1px 3px rgb(0 0 0 / 0.04);">
   <div style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:1rem;">
     <div>
       <div style="margin-bottom:0.5rem;">
@@ -141,8 +141,8 @@ LIMIT 30
           <span class="status-badge status-missing">● {site_summary[0].status_label}</span>
         {/if}
       </div>
-      <h1 style="font-size:1.5rem; font-weight:800; letter-spacing:-0.03em; color:hsl(var(--base-content)); margin:0;">{site_summary[0].display_name}</h1>
-      <p style="font-size:0.8125rem; color:hsl(var(--base-content) / 0.5); margin-top:0.25rem;">
+      <h1 style="font-size:1.5rem; font-weight:800; letter-spacing:-0.03em; color:var(--base-content); margin:0;">{site_summary[0].display_name}</h1>
+      <p style="font-size:0.8125rem; color:hsl(var(--twc-base-content) / 0.5); margin-top:0.25rem;">
         {site_summary[0].website} · {site_summary[0].country}
       </p>
     </div>
@@ -164,31 +164,31 @@ LIMIT 30
   <div class="not-prose" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:1rem 2rem; font-size:0.8125rem;">
     <div>
       <p class="dash-section-label" style="margin-bottom:0.125rem;">Run place</p>
-      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].run_place}</p>
+      <p style="font-weight:700; color:var(--base-content); margin:0;">{site_summary[0].run_place}</p>
     </div>
     <div>
       <p class="dash-section-label" style="margin-bottom:0.125rem;">Schedule</p>
-      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].schedule}</p>
+      <p style="font-weight:700; color:var(--base-content); margin:0;">{site_summary[0].schedule}</p>
     </div>
     <div>
       <p class="dash-section-label" style="margin-bottom:0.125rem;">Workflow</p>
-      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].workflow_name}</p>
+      <p style="font-weight:700; color:var(--base-content); margin:0;">{site_summary[0].workflow_name}</p>
     </div>
     <div>
       <p class="dash-section-label" style="margin-bottom:0.125rem;">CI status</p>
-      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].workflow_status}</p>
+      <p style="font-weight:700; color:var(--base-content); margin:0;">{site_summary[0].workflow_status}</p>
     </div>
     <div>
       <p class="dash-section-label" style="margin-bottom:0.125rem;">Duration</p>
-      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].workflow_duration_sec}s</p>
+      <p style="font-weight:700; color:var(--base-content); margin:0;">{site_summary[0].workflow_duration_sec}s</p>
     </div>
     <div>
       <p class="dash-section-label" style="margin-bottom:0.125rem;">Repository</p>
-      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].github_username}/{site_summary[0].repo}</p>
+      <p style="font-weight:700; color:var(--base-content); margin:0;">{site_summary[0].github_username}/{site_summary[0].repo}</p>
     </div>
     <div>
       <p class="dash-section-label" style="margin-bottom:0.125rem;">Stale fallback</p>
-      <p style="font-weight:700; color:hsl(var(--base-content)); margin:0;">{site_summary[0].report_fallback}</p>
+      <p style="font-weight:700; color:var(--base-content); margin:0;">{site_summary[0].report_fallback}</p>
     </div>
   </div>
 </Details>

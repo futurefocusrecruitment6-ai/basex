@@ -4,7 +4,7 @@ description: Index of site detail pages.
 ---
 
 <div class="not-prose dash-hero">
-  <p class="hero-label" style="color: hsl(var(--base-content) / 0.45);">Site directory</p>
+  <p class="hero-label" style="color: hsl(var(--twc-base-content) / 0.45);">Site directory</p>
   <p class="hero-desc">
     All monitored websites. Click a row to open scraper health, alert history, and listing volume for that site.
   </p>
