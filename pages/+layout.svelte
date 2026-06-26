@@ -1,4 +1,6 @@
 <script>
+	import '@evidence-dev/tailwind/fonts.css';
+	import '../app.css';
 	import { EvidenceDefaultLayout } from '@evidence-dev/core-components';
 	export let data;
 </script>
@@ -21,6 +23,8 @@
 	:global(body) {
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
+		background: var(--base-100);
+		color: var(--base-content);
 	}
 
 	:global(.markdown) {
