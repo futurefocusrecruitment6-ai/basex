@@ -22,6 +22,7 @@ SELECT
   END AS status_label,
   s.hub_partition_date::VARCHAR AS last_run,
   s.unique_ads,
+  s.r2_file_count,
   '/site/' || s.site_id AS site_link
 FROM motherduck.site_daily s
 INNER JOIN (
@@ -65,6 +66,7 @@ INNER JOIN (
   <Column id=country />
   <Column id=status_label title="Status" />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=last_run title="Last run" />
   <Column id=site_id title="Site ID" />
 </DataTable>

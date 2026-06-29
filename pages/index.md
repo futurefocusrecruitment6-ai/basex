@@ -66,6 +66,7 @@ SELECT
   COUNT(*) FILTER (WHERE s.status = 'failed') AS sites_failed,
   COUNT(*) AS sites_shown,
   COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
+  COALESCE(SUM(s.r2_file_count), 0) AS total_r2_files,
   MAX(s.hub_partition_date)::VARCHAR AS partition_date,
   MAX(s.inspect_date)::VARCHAR AS inspect_date
 FROM motherduck.site_daily s
@@ -129,7 +130,8 @@ SELECT
   SUM(s.alert_count) AS total_alerts,
   COUNT(*) FILTER (WHERE s.status = 'ok') AS sites_ok,
   COUNT(*) AS sites_count,
-  COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads
+  COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
+  COALESCE(SUM(s.r2_file_count), 0) AS total_r2_files
 FROM motherduck.site_daily s
 INNER JOIN site_scope ss ON s.site_id = ss.site_id
 WHERE s.hub_partition_date >= (SELECT d FROM target) - INTERVAL '30' DAY
@@ -152,7 +154,8 @@ SELECT
   sc.all_passed,
   sc.files_optional,
   sc.unique_ads,
-  sc.ads_source
+  sc.ads_source,
+  sc.r2_file_count
 FROM motherduck.scraper_daily sc
 INNER JOIN motherduck.site_daily s
   ON s.hub_partition_date = sc.hub_partition_date
@@ -203,11 +206,13 @@ ORDER BY
   <span><strong>{hub_kpis[0].sites_shown}</strong> sites in scope</span>
 </div>
 
-<Grid cols=4 gap=md>
+<Grid cols=6 gap=md>
   <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
   <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 />
+  <BigValue data={hub_kpis} value=total_r2_files title="R2 files" fmt=num0 />
   <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
   <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
+  <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
 </Grid>
 
 <Tabs id="hub-main" color=primary fullWidth=true>
@@ -248,7 +253,7 @@ ORDER BY
   <strong>{sites_filtered.length}</strong> sites · <strong>{sites_filtered.filter(d => d.status === 'ok').length}</strong> healthy · <strong>{sites_filtered.filter(d => d.status !== 'ok').length}</strong> need attention
 </div>
 
-<Grid cols=2 gap=lg>
+<Grid cols=3 gap=lg>
   <BarChart
     data={sites_filtered}
     x=display_name
@@ -260,6 +265,13 @@ ORDER BY
     x=display_name
     y=unique_ads
     title="Unique ads by site"
+    yFmt=num0
+  />
+  <BarChart
+    data={sites_filtered}
+    x=display_name
+    y=r2_file_count
+    title="R2 files by site"
     yFmt=num0
   />
 </Grid>
@@ -276,12 +288,15 @@ ORDER BY
   <Column id=country />
   <Column id=status_label title="Status" />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=scrapers_passed title="Passed" />
   <Column id=scrapers_total title="Scrapers" />
   <Column id=pass_pct title="Pass %" fmt='0.0"%"' />
   <Column id=alert_count title="Alerts" />
   <Column id=run_place title="Run place" />
+  <Column id=schedule />
   <Column id=workflow_status title="CI" />
+  <Column id=report_fallback title="Stale?" />
   <Column id=github_repo_url title="Repo" contentType=link linkLabel="GitHub ↗" openInNewTab=true />
 </DataTable>
 
@@ -304,6 +319,7 @@ ORDER BY
   <Column id=display_name title="Site" />
   <Column id=scraper />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=ads_source title="Count source" />
   <Column id=files_found title="Files" />
   <Column id=checks_passed title="Checks passed" />

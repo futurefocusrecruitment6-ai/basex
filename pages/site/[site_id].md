@@ -40,6 +40,7 @@ SELECT
   s.scrapers_total,
   s.alert_count,
   s.unique_ads,
+  s.r2_file_count,
   s.workflow_name,
   s.workflow_status,
   s.workflow_duration_sec,
@@ -81,7 +82,8 @@ SELECT
   sc.files_optional,
   sc.unique_ads,
   sc.total_rows,
-  sc.ads_source
+  sc.ads_source,
+  sc.r2_file_count
 FROM motherduck.scraper_daily sc
 CROSS JOIN target t
 WHERE sc.site_id = '${params.site_id}'
@@ -120,6 +122,7 @@ SELECT
   s.scrapers_total,
   s.alert_count,
   s.unique_ads,
+  s.r2_file_count,
   s.workflow_status,
   s.workflow_duration_sec
 FROM motherduck.site_daily s
@@ -148,8 +151,9 @@ LIMIT 30
   <span>Listings <strong>{site_summary[0].inspect_date}</strong></span>
 </div>
 
-<Grid cols=4 gap=md>
+<Grid cols=5 gap=md>
   <BigValue data={site_summary} value=unique_ads title="Unique ads" fmt=num0 />
+  <BigValue data={site_summary} value=r2_file_count title="R2 files" fmt=num0 />
   <BigValue data={site_summary} value=scrapers_passed title="Scrapers passed" />
   <BigValue data={site_summary} value=alert_count title="Alerts" />
   <BigValue data={site_summary} value=pass_pct title="Pass rate" fmt='0.0"%"' />
@@ -192,7 +196,7 @@ LIMIT 30
 
 <Tab label="History" id="history">
 
-<Grid cols=2 gap=lg>
+<Grid cols=3 gap=lg>
   <LineChart
     data={site_history}
     x=hub_partition_date
@@ -207,6 +211,14 @@ LIMIT 30
     y=alert_count
     title="Alerts — 30 runs"
     yAxisTitle="Alerts"
+  />
+  <LineChart
+    data={site_history}
+    x=hub_partition_date
+    y=r2_file_count
+    title="R2 files — 30 runs"
+    yAxisTitle="Objects"
+    yFmt=num0
   />
 </Grid>
 
@@ -236,6 +248,7 @@ LIMIT 30
 >
   <Column id=scraper />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=ads_source title="Source" />
   <Column id=files_found title="Files" />
   <Column id=checks_passed title="Passed" />
