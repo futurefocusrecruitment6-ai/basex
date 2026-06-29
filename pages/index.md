@@ -41,16 +41,13 @@ ORDER BY status
 ```
 
 <div class="not-prose dash-toolbar">
-<Grid cols=4 gap=md>
+<Grid cols=5 gap=sm>
   <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
     <DropdownOption value="%" valueLabel="Latest run" />
   </Dropdown>
   <Dropdown name=country_filter title="Country" data={country_options} value=country multiple selectAllByDefault />
   <Dropdown name=site_filter title="Site" data={site_options} value=site_id label=display_name multiple selectAllByDefault />
   <Dropdown name=run_place_filter title="Run place" data={run_place_options} value=run_place multiple selectAllByDefault />
-</Grid>
-
-<Grid cols=4 gap=md>
   <Dropdown name=status_filter title="Status" data={status_options} value=status multiple selectAllByDefault />
 </Grid>
 </div>
@@ -200,7 +197,7 @@ ORDER BY
   a.scraper
 ```
 
-<div class="not-prose report-context">
+<div class="not-prose dash-context">
   <span>Run <strong>{hub_kpis[0].partition_date}</strong></span>
   <span class="ctx-sep">·</span>
   <span>Listings <strong>{hub_kpis[0].inspect_date}</strong></span>
@@ -209,13 +206,13 @@ ORDER BY
 </div>
 
 <div class="not-prose dash-kpis hub-kpis">
-<Grid cols=6 gap=md>
-  <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
-  <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 />
-  <BigValue data={hub_kpis} value=total_r2_files title="R2 files" fmt=num0 />
-  <BigValue data={hub_kpis} value=total_alerts title="Open alerts" />
-  <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
-  <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
+<Grid cols=3 gap=sm>
+  <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" maxWidth="100%" />
+  <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 maxWidth="100%" />
+  <BigValue data={hub_kpis} value=total_r2_files title="R2 files" fmt=num0 maxWidth="100%" />
+  <BigValue data={hub_kpis} value=total_alerts title="Open alerts" maxWidth="100%" />
+  <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" maxWidth="100%" />
+  <BigValue data={hub_kpis} value=sites_missing title="Missing reports" maxWidth="100%" />
 </Grid>
 </div>
 
@@ -224,13 +221,15 @@ ORDER BY
 
 <Tab label="Trends" id="trends">
 
-<Grid cols=2 gap=lg>
+<div class="not-prose dash-charts">
+<Grid cols=2 gap=md>
   <LineChart
     data={alert_trend}
     x=hub_partition_date
     y=total_alerts
     title="Alerts — 30 day"
     yAxisTitle="Alerts"
+    chartAreaHeight=220
   />
   <LineChart
     data={alert_trend}
@@ -239,6 +238,7 @@ ORDER BY
     title="Unique ads — 30 day"
     yAxisTitle="Listings"
     yFmt=num0
+    chartAreaHeight=220
   />
 </Grid>
 
@@ -248,7 +248,9 @@ ORDER BY
   y=sites_ok
   title="Healthy sites — 30 day"
   yAxisTitle="Sites OK"
+  chartAreaHeight=200
 />
+</div>
 
 </Tab>
 
@@ -258,12 +260,14 @@ ORDER BY
   <strong>{sites_filtered.length}</strong> sites · <strong>{sites_filtered.filter(d => d.status === 'ok').length}</strong> healthy · <strong>{sites_filtered.filter(d => d.status !== 'ok').length}</strong> need attention
 </div>
 
-<Grid cols=3 gap=lg>
+<Grid cols=2 gap=md>
   <BarChart
     data={sites_filtered}
     x=display_name
     y=alert_count
     title="Alerts by site"
+    swapXY=true
+    chartAreaHeight=260
   />
   <BarChart
     data={sites_filtered}
@@ -271,16 +275,22 @@ ORDER BY
     y=unique_ads
     title="Unique ads by site"
     yFmt=num0
-  />
-  <BarChart
-    data={sites_filtered}
-    x=display_name
-    y=r2_file_count
-    title="R2 files by site"
-    yFmt=num0
+    swapXY=true
+    chartAreaHeight=260
   />
 </Grid>
 
+<BarChart
+  data={sites_filtered}
+  x=display_name
+  y=r2_file_count
+  title="R2 files by site"
+  yFmt=num0
+  swapXY=true
+  chartAreaHeight=220
+/>
+
+<div class="not-prose dash-table-scroll">
 <DataTable
   data={sites_filtered}
   link=site_link
@@ -298,12 +308,10 @@ ORDER BY
   <Column id=scrapers_total title="Scrapers" />
   <Column id=pass_pct title="Pass %" fmt='0.0"%"' />
   <Column id=alert_count title="Alerts" />
-  <Column id=run_place title="Run place" />
-  <Column id=schedule />
   <Column id=workflow_status title="CI" />
-  <Column id=report_fallback title="Stale?" />
   <Column id=github_repo_url title="Repo" contentType=link linkLabel="GitHub ↗" openInNewTab=true />
 </DataTable>
+</div>
 
 </Tab>
 
@@ -314,6 +322,7 @@ ORDER BY
   <strong>{scrapers_filtered.filter(d => d.all_passed).length}</strong> all checks passed
 </div>
 
+<div class="not-prose dash-table-scroll">
 <DataTable
   data={scrapers_filtered}
   search=true
@@ -332,18 +341,20 @@ ORDER BY
   <Column id=all_passed title="Passed?" />
   <Column id=files_optional title="Optional?" />
 </DataTable>
+</div>
 
 </Tab>
 
 <Tab label="Alerts" id="alerts">
 
-<div class="not-prose" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;">
+<div class="not-prose sev-row">
   <span class="sev-badge sev-critical">Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong></span>
   <span class="sev-badge sev-high">High <strong>{alerts_filtered.filter(d => d.severity === 'high').length}</strong></span>
   <span class="sev-badge sev-medium">Medium <strong>{alerts_filtered.filter(d => d.severity === 'medium').length}</strong></span>
   <span class="sev-badge sev-low">Low <strong>{alerts_filtered.filter(d => d.severity === 'low').length}</strong></span>
 </div>
 
+<div class="not-prose dash-table-scroll">
 <DataTable
   data={alerts_filtered}
   search=true
@@ -358,6 +369,7 @@ ORDER BY
   <Column id=check_name title="Check" />
   <Column id=detail />
 </DataTable>
+</div>
 
 </Tab>
 

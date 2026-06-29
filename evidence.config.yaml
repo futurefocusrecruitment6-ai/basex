@@ -1,5 +1,5 @@
 appearance:
-  default: dark
+  default: light
   switcher: true
 
 theme:
@@ -7,26 +7,26 @@ theme:
     default:
       light:
         - "#118dff"
+        - "#107c10"
+        - "#ca5010"
+        - "#d13438"
         - "#12239e"
-        - "#e66c37"
-        - "#6b007b"
-        - "#e044a7"
-        - "#744ec2"
         - "#008272"
+        - "#8764b8"
         - "#d9b300"
-        - "#64748b"
+        - "#605e5c"
         - "#94a3b8"
       dark:
         - "#5794f2"
         - "#73bf69"
         - "#ff9830"
-        - "#fade2a"
         - "#f2495c"
-        - "#b877d9"
         - "#8ab8ff"
         - "#37872d"
-        - "#6e6e6e"
+        - "#b877d9"
+        - "#fade2a"
         - "#9fa0a2"
+        - "#6e6e6e"
   colorScales:
     default:
       light:

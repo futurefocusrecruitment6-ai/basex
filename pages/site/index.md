@@ -49,14 +49,15 @@ INNER JOIN (
 ```
 
 <div class="not-prose dash-kpis cols-3">
-<Grid cols=3 gap=md>
-  <BigValue data={site_counts} value=total title="Total sites" />
-  <BigValue data={site_counts} value=healthy title="Healthy" />
-  <BigValue data={site_counts} value=need_attention title="Need attention" />
+<Grid cols=3 gap=sm>
+  <BigValue data={site_counts} value=total title="Total sites" maxWidth="100%" />
+  <BigValue data={site_counts} value=healthy title="Healthy" maxWidth="100%" />
+  <BigValue data={site_counts} value=need_attention title="Need attention" maxWidth="100%" />
 </Grid>
 </div>
 
 <div class="not-prose dash-panel">
+<div class="not-prose dash-table-scroll">
 <DataTable
   data={sites}
   link=site_link
@@ -73,4 +74,5 @@ INNER JOIN (
   <Column id=last_run title="Last run" />
   <Column id=site_id title="Site ID" />
 </DataTable>
+</div>
 </div>

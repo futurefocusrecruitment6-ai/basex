@@ -108,21 +108,22 @@ WHERE sc.hub_partition_date = t.d
 ORDER BY sc.unique_ads DESC NULLS LAST
 ```
 
-<div class="not-prose report-context">
+<div class="not-prose dash-context">
   <span>Run <strong>{ads_kpis[0].partition_date}</strong></span>
   <span class="ctx-sep">·</span>
   <span>Listings <strong>{ads_kpis[0].inspect_date}</strong></span>
 </div>
 
 <div class="not-prose dash-kpis cols-3">
-<Grid cols=3 gap=md>
-  <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" fmt=num0 />
-  <BigValue data={ads_kpis} value=sites_reporting_ads title="Sites reporting data" />
-  <BigValue data={ads_kpis} value=sites_with_data title="Sites in scope" />
+<Grid cols=3 gap=sm>
+  <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" fmt=num0 maxWidth="100%" />
+  <BigValue data={ads_kpis} value=sites_reporting_ads title="Sites reporting data" maxWidth="100%" />
+  <BigValue data={ads_kpis} value=sites_with_data title="Sites in scope" maxWidth="100%" />
 </Grid>
 </div>
 
-<Grid cols=2 gap=lg>
+<div class="not-prose dash-charts">
+<Grid cols=2 gap=md>
   <LineChart
     data={ads_trend}
     x=hub_partition_date
@@ -130,6 +131,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
     title="Hub total — 60 day trend"
     yAxisTitle="Unique listings"
     yFmt=num0
+    chartAreaHeight=240
   />
   <BarChart
     data={ads_by_site}
@@ -137,8 +139,11 @@ ORDER BY sc.unique_ads DESC NULLS LAST
     y=unique_ads
     title="By website (selected run)"
     yFmt=num0
+    swapXY=true
+    chartAreaHeight=240
   />
 </Grid>
+</div>
 
 <div class="not-prose dash-panel">
 <Tabs id="ads-tabs" color=primary fullWidth=true>
@@ -149,6 +154,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <strong>{ads_by_site.length}</strong> websites · sorted by listing volume descending
 </div>
 
+<div class="not-prose dash-table-scroll">
 <DataTable
   data={ads_by_site}
   link=site_link
@@ -166,6 +172,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=status title="Status" />
   <Column id=report_fallback title="Stale?" />
 </DataTable>
+</div>
 
 </Tab>
 
@@ -176,6 +183,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <strong>{ads_by_scraper.filter(d => d.all_passed).length}</strong> validation passed
 </div>
 
+<div class="not-prose dash-table-scroll">
 <DataTable
   data={ads_by_scraper}
   search=true
@@ -192,6 +200,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <Column id=files_found title="Files" />
   <Column id=all_passed title="Passed?" />
 </DataTable>
+</div>
 
 </Tab>
 
