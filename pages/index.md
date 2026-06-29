@@ -40,6 +40,7 @@ WHERE status IS NOT NULL
 ORDER BY status
 ```
 
+<div class="not-prose dash-toolbar">
 <Grid cols=4 gap=md>
   <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
     <DropdownOption value="%" valueLabel="Latest run" />
@@ -52,6 +53,7 @@ ORDER BY status
 <Grid cols=4 gap=md>
   <Dropdown name=status_filter title="Status" data={status_options} value=status multiple selectAllByDefault />
 </Grid>
+</div>
 
 ```hub_kpis
 WITH target AS (
@@ -206,6 +208,7 @@ ORDER BY
   <span><strong>{hub_kpis[0].sites_shown}</strong> sites in scope</span>
 </div>
 
+<div class="not-prose dash-kpis hub-kpis">
 <Grid cols=6 gap=md>
   <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" />
   <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 />
@@ -214,7 +217,9 @@ ORDER BY
   <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" />
   <BigValue data={hub_kpis} value=sites_missing title="Missing reports" />
 </Grid>
+</div>
 
+<div class="not-prose dash-panel">
 <Tabs id="hub-main" color=primary fullWidth=true>
 
 <Tab label="Trends" id="trends">
@@ -357,6 +362,7 @@ ORDER BY
 </Tab>
 
 </Tabs>
+</div>
 
 <div class="not-prose report-footer">
   Click any site row to drill into scraper detail, history, and alert breakdown.

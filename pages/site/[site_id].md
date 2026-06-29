@@ -14,11 +14,13 @@ WHERE s.site_id = '${params.site_id}'
 ORDER BY hub_partition_date DESC
 ```
 
+<div class="not-prose dash-toolbar">
 <Grid cols=2 gap=md>
   <Dropdown name=partition title="Hub run date" data={site_partitions} value=hub_partition_date defaultValue="%">
     <DropdownOption value="%" valueLabel="Latest run" />
   </Dropdown>
 </Grid>
+</div>
 
 ```site_summary
 WITH target AS (
@@ -151,6 +153,7 @@ LIMIT 30
   <span>Listings <strong>{site_summary[0].inspect_date}</strong></span>
 </div>
 
+<div class="not-prose dash-kpis">
 <Grid cols=5 gap=md>
   <BigValue data={site_summary} value=unique_ads title="Unique ads" fmt=num0 />
   <BigValue data={site_summary} value=r2_file_count title="R2 files" fmt=num0 />
@@ -158,6 +161,7 @@ LIMIT 30
   <BigValue data={site_summary} value=alert_count title="Alerts" />
   <BigValue data={site_summary} value=pass_pct title="Pass rate" fmt='0.0"%"' />
 </Grid>
+</div>
 
 <Details title="Run metadata">
   <div class="not-prose meta-grid">
@@ -192,6 +196,7 @@ LIMIT 30
   </div>
 </Details>
 
+<div class="not-prose dash-panel">
 <Tabs id="site-tabs" color=primary fullWidth=true>
 
 <Tab label="History" id="history">
@@ -286,3 +291,4 @@ LIMIT 30
 </Tab>
 
 </Tabs>
+</div>

@@ -21,12 +21,14 @@ WHERE country IS NOT NULL
 ORDER BY country
 ```
 
+<div class="not-prose dash-toolbar">
 <Grid cols=2 gap=md>
   <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
     <DropdownOption value="%" valueLabel="Latest run" />
   </Dropdown>
   <Dropdown name=country_filter title="Country" data={country_options} value=country multiple selectAllByDefault />
 </Grid>
+</div>
 
 ```ads_kpis
 WITH target AS (
@@ -112,11 +114,13 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   <span>Listings <strong>{ads_kpis[0].inspect_date}</strong></span>
 </div>
 
+<div class="not-prose dash-kpis cols-3">
 <Grid cols=3 gap=md>
   <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" fmt=num0 />
   <BigValue data={ads_kpis} value=sites_reporting_ads title="Sites reporting data" />
   <BigValue data={ads_kpis} value=sites_with_data title="Sites in scope" />
 </Grid>
+</div>
 
 <Grid cols=2 gap=lg>
   <LineChart
@@ -136,6 +140,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
   />
 </Grid>
 
+<div class="not-prose dash-panel">
 <Tabs id="ads-tabs" color=primary fullWidth=true>
 
 <Tab label="By website" id="by-site">
@@ -191,6 +196,7 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 </Tab>
 
 </Tabs>
+</div>
 
 <div class="not-prose report-footer">
   Count source: <code>excel_ids</code> (preferred), <code>json_summary</code>, or <code>excel_rows</code>.

@@ -48,12 +48,15 @@ INNER JOIN (
 ) latest ON s.site_id = latest.site_id AND s.hub_partition_date = latest.max_date
 ```
 
+<div class="not-prose dash-kpis cols-3">
 <Grid cols=3 gap=md>
   <BigValue data={site_counts} value=total title="Total sites" />
   <BigValue data={site_counts} value=healthy title="Healthy" />
   <BigValue data={site_counts} value=need_attention title="Need attention" />
 </Grid>
+</div>
 
+<div class="not-prose dash-panel">
 <DataTable
   data={sites}
   link=site_link
@@ -70,3 +73,4 @@ INNER JOIN (
   <Column id=last_run title="Last run" />
   <Column id=site_id title="Site ID" />
 </DataTable>
+</div>

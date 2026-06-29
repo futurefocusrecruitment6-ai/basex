@@ -1,3 +1,35 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+	.dash-toolbar {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+		padding: 0.875rem 1rem;
+		border: 1px solid hsl(var(--twc-base-300) / 0.55);
+		border-radius: 0.375rem;
+		background: hsl(var(--twc-base-200) / 0.35);
+	}
+
+	.dash-toolbar .grid {
+		margin: 0;
+	}
+
+	.dash-kpis {
+		margin-bottom: 1.25rem;
+	}
+
+	.dash-panel {
+		border: 1px solid hsl(var(--twc-base-300) / 0.55);
+		border-radius: 0.375rem;
+		background: hsl(var(--twc-base-100));
+		padding: 0.25rem 1rem 1rem;
+	}
+
+	.dash-panel .stat-line {
+		padding-top: 0.75rem;
+	}
+}

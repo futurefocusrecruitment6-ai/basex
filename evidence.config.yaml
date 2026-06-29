@@ -1,71 +1,71 @@
 appearance:
-  default: light
+  default: dark
   switcher: true
 
 theme:
   colorPalettes:
     default:
       light:
-        - "#2563eb"
-        - "#3b82f6"
-        - "#60a5fa"
-        - "#0ea5e9"
-        - "#06b6d4"
-        - "#10b981"
-        - "#84cc16"
-        - "#f59e0b"
-        - "#ef4444"
+        - "#118dff"
+        - "#12239e"
+        - "#e66c37"
+        - "#6b007b"
+        - "#e044a7"
+        - "#744ec2"
+        - "#008272"
+        - "#d9b300"
         - "#64748b"
-      dark:
-        - "#60a5fa"
-        - "#3b82f6"
-        - "#2563eb"
-        - "#38bdf8"
-        - "#22d3ee"
-        - "#34d399"
-        - "#a3e635"
-        - "#fbbf24"
-        - "#f87171"
         - "#94a3b8"
+      dark:
+        - "#5794f2"
+        - "#73bf69"
+        - "#ff9830"
+        - "#fade2a"
+        - "#f2495c"
+        - "#b877d9"
+        - "#8ab8ff"
+        - "#37872d"
+        - "#6e6e6e"
+        - "#9fa0a2"
   colorScales:
     default:
       light:
-        - "#dbeafe"
-        - "#1e3a8a"
+        - "#e8f4fd"
+        - "#118dff"
       dark:
-        - "#1e3a8a"
-        - "#dbeafe"
+        - "#1f2428"
+        - "#5794f2"
   colors:
     primary:
-      light: "#2563eb"
-      dark: "#60a5fa"
+      light: "#118dff"
+      dark: "#5794f2"
     accent:
-      light: "#0ea5e9"
-      dark: "#38bdf8"
+      light: "#008272"
+      dark: "#73bf69"
     base-100:
       light: "#ffffff"
-      dark: "#0b1120"
+      dark: "#181b1f"
     base-200:
-      light: "#f8fafc"
-      dark: "#111827"
+      light: "#f3f2f1"
+      dark: "#111217"
     base-300:
-      light: "#e2e8f0"
-      dark: "#1e293b"
+      light: "#edebe9"
+      dark: "#2a2a2e"
     base-content:
-      light: "#0f172a"
-      dark: "#e2e8f0"
+      light: "#252423"
+      dark: "#d8d9da"
     info:
-      light: "#0284c7"
-      dark: "#38bdf8"
+      light: "#118dff"
+      dark: "#5794f2"
     positive:
-      light: "#059669"
-      dark: "#34d399"
+      light: "#107c10"
+      dark: "#73bf69"
     warning:
-      light: "#d97706"
-      dark: "#fbbf24"
+      light: "#ca5010"
+      dark: "#ff9830"
     negative:
-      light: "#dc2626"
-      dark: "#f87171"
+      light: "#d13438"
+      dark: "#f2495c"
 
 plugins:
   components:
