@@ -3,10 +3,7 @@ title: Overview
 description: Daily validation results from every website in the hub. Filter by country, site, or run status — then drill into a site for scraper-level detail.
 ---
 
-<div class="not-prose report-nav">
-  <a href="/ads">Listing volume</a>
-  <a href="/site">All sites</a>
-</div>
+<DashNav active="overview" />
 
 ```partition_dates
 SELECT DISTINCT hub_partition_date::VARCHAR AS hub_partition_date
@@ -40,7 +37,7 @@ WHERE status IS NOT NULL
 ORDER BY status
 ```
 
-<div class="not-prose dash-toolbar">
+<div class="dash-filters">
 <Grid cols=5 gap=sm>
   <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
     <DropdownOption value="%" valueLabel="Latest run" />
@@ -197,32 +194,30 @@ ORDER BY
   a.scraper
 ```
 
-<div class="not-prose dash-context">
+<div class="dash-meta">
   <span>Run <strong>{hub_kpis[0].partition_date}</strong></span>
-  <span class="ctx-sep">·</span>
-  <span>Listings <strong>{hub_kpis[0].inspect_date}</strong></span>
-  <span class="ctx-sep">·</span>
+  <span class="sep">·</span>
+  <span>Listings <strong>{hub_kpis[0].inspect_date ?? '—'}</strong></span>
+  <span class="sep">·</span>
   <span><strong>{hub_kpis[0].sites_shown}</strong> sites in scope</span>
 </div>
 
-<div class="not-prose dash-kpis hub-kpis">
-<Grid cols=3 gap=sm>
-  <BigValue data={hub_kpis} value=sites_ok title="Sites healthy" maxWidth="100%" />
-  <BigValue data={hub_kpis} value=total_unique_ads title="Unique ads" fmt=num0 maxWidth="100%" />
-  <BigValue data={hub_kpis} value=total_r2_files title="R2 files" fmt=num0 maxWidth="100%" />
-  <BigValue data={hub_kpis} value=total_alerts title="Open alerts" maxWidth="100%" />
-  <BigValue data={hub_kpis} value=sites_failed title="Sites with issues" maxWidth="100%" />
-  <BigValue data={hub_kpis} value=sites_missing title="Missing reports" maxWidth="100%" />
-</Grid>
+<div class="kpi-row">
+  <KpiCard label="Sites healthy" value={hub_kpis[0].sites_ok} tone="good" />
+  <KpiCard label="Unique ads" value={hub_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="R2 files" value={hub_kpis[0].total_r2_files?.toLocaleString()} />
+  <KpiCard label="Open alerts" value={hub_kpis[0].total_alerts} tone="bad" />
+  <KpiCard label="Sites with issues" value={hub_kpis[0].sites_failed} tone="bad" />
+  <KpiCard label="Missing reports" value={hub_kpis[0].sites_missing} tone="warn" />
 </div>
 
-<div class="not-prose dash-panel">
+<div class="dash-panel">
 <Tabs id="hub-main" color=primary fullWidth=true>
 
 <Tab label="Trends" id="trends">
 
-<div class="not-prose dash-charts">
-<Grid cols=2 gap=md>
+<div class="chart-row">
+  <div class="chart-panel">
   <LineChart
     data={alert_trend}
     x=hub_partition_date
@@ -230,7 +225,10 @@ ORDER BY
     title="Alerts — 30 day"
     yAxisTitle="Alerts"
     chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
+  </div>
+  <div class="chart-panel">
   <LineChart
     data={alert_trend}
     x=hub_partition_date
@@ -239,17 +237,23 @@ ORDER BY
     yAxisTitle="Listings"
     yFmt=num0
     chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
-</Grid>
+  </div>
+</div>
 
-<LineChart
-  data={alert_trend}
-  x=hub_partition_date
-  y=sites_ok
-  title="Healthy sites — 30 day"
-  yAxisTitle="Sites OK"
-  chartAreaHeight=200
-/>
+<div class="chart-row cols-1">
+  <div class="chart-panel">
+  <LineChart
+    data={alert_trend}
+    x=hub_partition_date
+    y=sites_ok
+    title="Healthy sites — 30 day"
+    yAxisTitle="Sites OK"
+    chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
 </div>
 
 </Tab>
@@ -260,7 +264,8 @@ ORDER BY
   <strong>{sites_filtered.length}</strong> sites · <strong>{sites_filtered.filter(d => d.status === 'ok').length}</strong> healthy · <strong>{sites_filtered.filter(d => d.status !== 'ok').length}</strong> need attention
 </div>
 
-<Grid cols=2 gap=md>
+<div class="chart-row">
+  <div class="chart-panel">
   <BarChart
     data={sites_filtered}
     x=display_name
@@ -268,7 +273,10 @@ ORDER BY
     title="Alerts by site"
     swapXY=true
     chartAreaHeight=260
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
+  </div>
+  <div class="chart-panel">
   <BarChart
     data={sites_filtered}
     x=display_name
@@ -277,20 +285,27 @@ ORDER BY
     yFmt=num0
     swapXY=true
     chartAreaHeight=260
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
-</Grid>
+  </div>
+</div>
 
-<BarChart
-  data={sites_filtered}
-  x=display_name
-  y=r2_file_count
-  title="R2 files by site"
-  yFmt=num0
-  swapXY=true
-  chartAreaHeight=220
-/>
+<div class="chart-row cols-1">
+  <div class="chart-panel">
+  <BarChart
+    data={sites_filtered}
+    x=display_name
+    y=r2_file_count
+    title="R2 files by site"
+    yFmt=num0
+    swapXY=true
+    chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+</div>
 
-<div class="not-prose dash-table-scroll">
+<div class="dash-table-wrap">
 <DataTable
   data={sites_filtered}
   link=site_link
@@ -322,7 +337,7 @@ ORDER BY
   <strong>{scrapers_filtered.filter(d => d.all_passed).length}</strong> all checks passed
 </div>
 
-<div class="not-prose dash-table-scroll">
+<div class="dash-table-wrap">
 <DataTable
   data={scrapers_filtered}
   search=true
@@ -347,14 +362,14 @@ ORDER BY
 
 <Tab label="Alerts" id="alerts">
 
-<div class="not-prose sev-row">
-  <span class="sev-badge sev-critical">Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong></span>
-  <span class="sev-badge sev-high">High <strong>{alerts_filtered.filter(d => d.severity === 'high').length}</strong></span>
-  <span class="sev-badge sev-medium">Medium <strong>{alerts_filtered.filter(d => d.severity === 'medium').length}</strong></span>
-  <span class="sev-badge sev-low">Low <strong>{alerts_filtered.filter(d => d.severity === 'low').length}</strong></span>
+<div class="sev-row">
+  <span class="badge badge-bad">Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong></span>
+  <span class="badge badge-warn">High <strong>{alerts_filtered.filter(d => d.severity === 'high').length}</strong></span>
+  <span class="badge badge-warn">Medium <strong>{alerts_filtered.filter(d => d.severity === 'medium').length}</strong></span>
+  <span class="badge">Low <strong>{alerts_filtered.filter(d => d.severity === 'low').length}</strong></span>
 </div>
 
-<div class="not-prose dash-table-scroll">
+<div class="dash-table-wrap">
 <DataTable
   data={alerts_filtered}
   search=true
@@ -376,7 +391,7 @@ ORDER BY
 </Tabs>
 </div>
 
-<div class="not-prose report-footer">
+<div class="dash-footer">
   Click any site row to drill into scraper detail, history, and alert breakdown.
 </div>
 

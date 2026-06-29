@@ -3,9 +3,7 @@ title: Site detail
 description: Scraper health, alert history, and listing volume for a single monitored website.
 ---
 
-<div class="not-prose">
-  <a href="/" class="back-link">← Overview</a>
-</div>
+<a href="/" class="back-link">← Overview</a>
 
 ```site_partitions
 SELECT DISTINCT s.hub_partition_date::VARCHAR AS hub_partition_date
@@ -14,8 +12,8 @@ WHERE s.site_id = '${params.site_id}'
 ORDER BY hub_partition_date DESC
 ```
 
-<div class="not-prose dash-toolbar">
-<Grid cols=2 gap=md>
+<div class="dash-filters">
+<Grid cols=2 gap=sm>
   <Dropdown name=partition title="Hub run date" data={site_partitions} value=hub_partition_date defaultValue="%">
     <DropdownOption value="%" valueLabel="Latest run" />
   </Dropdown>
@@ -133,34 +131,32 @@ ORDER BY s.hub_partition_date DESC
 LIMIT 30
 ```
 
-<div class="not-prose site-hero">
+<div class="site-header">
   <div>
     {#if site_summary[0].status === 'ok'}
-      <span class="status-badge status-ok">Healthy</span>
+      <span class="badge badge-good">Healthy</span>
     {:else if site_summary[0].status === 'failed'}
-      <span class="status-badge status-failed">Issues detected</span>
+      <span class="badge badge-bad">Issues detected</span>
     {:else}
-      <span class="status-badge status-missing">{site_summary[0].status_label}</span>
+      <span class="badge badge-warn">{site_summary[0].status_label}</span>
     {/if}
     <h1>{site_summary[0].display_name}</h1>
-    <p class="site-sub">{site_summary[0].website} · {site_summary[0].country}</p>
+    <p class="sub">{site_summary[0].website} · {site_summary[0].country}</p>
   </div>
 </div>
 
-<div class="not-prose dash-context">
+<div class="dash-meta">
   <span>Run <strong>{site_summary[0].partition_date}</strong></span>
-  <span class="ctx-sep">·</span>
-  <span>Listings <strong>{site_summary[0].inspect_date}</strong></span>
+  <span class="sep">·</span>
+  <span>Listings <strong>{site_summary[0].inspect_date ?? '—'}</strong></span>
 </div>
 
-<div class="not-prose dash-kpis site-kpis">
-<Grid cols=5 gap=sm>
-  <BigValue data={site_summary} value=unique_ads title="Unique ads" fmt=num0 maxWidth="100%" />
-  <BigValue data={site_summary} value=r2_file_count title="R2 files" fmt=num0 maxWidth="100%" />
-  <BigValue data={site_summary} value=scrapers_passed title="Scrapers passed" maxWidth="100%" />
-  <BigValue data={site_summary} value=alert_count title="Alerts" maxWidth="100%" />
-  <BigValue data={site_summary} value=pass_pct title="Pass rate" fmt='0.0"%"' maxWidth="100%" />
-</Grid>
+<div class="kpi-row cols-5">
+  <KpiCard label="Unique ads" value={site_summary[0].unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="R2 files" value={site_summary[0].r2_file_count?.toLocaleString()} />
+  <KpiCard label="Scrapers passed" value={site_summary[0].scrapers_passed} tone="good" />
+  <KpiCard label="Alerts" value={site_summary[0].alert_count} tone="bad" />
+  <KpiCard label="Pass rate" value="{site_summary[0].pass_pct}%" tone="good" />
 </div>
 
 <Details title="Run metadata">
@@ -196,13 +192,13 @@ LIMIT 30
   </div>
 </Details>
 
-<div class="not-prose dash-panel">
+<div class="dash-panel">
 <Tabs id="site-tabs" color=primary fullWidth=true>
 
 <Tab label="History" id="history">
 
-<div class="not-prose dash-charts">
-<Grid cols=2 gap=md>
+<div class="chart-row">
+  <div class="chart-panel">
   <LineChart
     data={site_history}
     x=hub_partition_date
@@ -211,7 +207,10 @@ LIMIT 30
     yAxisTitle="Listings"
     yFmt=num0
     chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
+  </div>
+  <div class="chart-panel">
   <LineChart
     data={site_history}
     x=hub_partition_date
@@ -219,10 +218,13 @@ LIMIT 30
     title="Alerts — 30 runs"
     yAxisTitle="Alerts"
     chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
-</Grid>
+  </div>
+</div>
 
-<Grid cols=2 gap=md>
+<div class="chart-row">
+  <div class="chart-panel">
   <LineChart
     data={site_history}
     x=hub_partition_date
@@ -231,7 +233,10 @@ LIMIT 30
     yAxisTitle="Objects"
     yFmt=num0
     chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
+  </div>
+  <div class="chart-panel">
   <LineChart
     data={site_history}
     x=hub_partition_date
@@ -239,8 +244,9 @@ LIMIT 30
     title="Scrapers passed — 30 runs"
     yAxisTitle="Count"
     chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
-</Grid>
+  </div>
 </div>
 
 </Tab>
@@ -252,7 +258,7 @@ LIMIT 30
   <strong>{site_scrapers.filter(d => d.all_passed).length}</strong> all checks passed
 </div>
 
-<div class="not-prose dash-table-scroll">
+<div class="dash-table-wrap">
 <DataTable
   data={site_scrapers}
   search=true
@@ -276,14 +282,14 @@ LIMIT 30
 
 <Tab label="Alerts" id="alerts">
 
-<div class="not-prose sev-row">
-  <span class="sev-badge sev-critical">Critical <strong>{site_alerts.filter(d => d.severity === 'critical').length}</strong></span>
-  <span class="sev-badge sev-high">High <strong>{site_alerts.filter(d => d.severity === 'high').length}</strong></span>
-  <span class="sev-badge sev-medium">Medium <strong>{site_alerts.filter(d => d.severity === 'medium').length}</strong></span>
-  <span class="sev-badge sev-low">Low <strong>{site_alerts.filter(d => d.severity === 'low').length}</strong></span>
+<div class="sev-row">
+  <span class="badge badge-bad">Critical <strong>{site_alerts.filter(d => d.severity === 'critical').length}</strong></span>
+  <span class="badge badge-warn">High <strong>{site_alerts.filter(d => d.severity === 'high').length}</strong></span>
+  <span class="badge badge-warn">Medium <strong>{site_alerts.filter(d => d.severity === 'medium').length}</strong></span>
+  <span class="badge">Low <strong>{site_alerts.filter(d => d.severity === 'low').length}</strong></span>
 </div>
 
-<div class="not-prose dash-table-scroll">
+<div class="dash-table-wrap">
 <DataTable
   data={site_alerts}
   search=true

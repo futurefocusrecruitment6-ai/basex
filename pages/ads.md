@@ -3,10 +3,7 @@ title: Listing volume
 description: Total unique listings collected per site and scraper. Counts prefer deduplicated listing IDs from Excel, with JSON summary as fallback.
 ---
 
-<div class="not-prose report-nav">
-  <a href="/">Overview</a>
-  <a href="/site">All sites</a>
-</div>
+<DashNav active="ads" />
 
 ```partition_dates
 SELECT DISTINCT hub_partition_date::VARCHAR AS hub_partition_date
@@ -21,8 +18,8 @@ WHERE country IS NOT NULL
 ORDER BY country
 ```
 
-<div class="not-prose dash-toolbar">
-<Grid cols=2 gap=md>
+<div class="dash-filters">
+<Grid cols=2 gap=sm>
   <Dropdown name=partition title="Hub run date" data={partition_dates} value=hub_partition_date defaultValue="%">
     <DropdownOption value="%" valueLabel="Latest run" />
   </Dropdown>
@@ -108,22 +105,20 @@ WHERE sc.hub_partition_date = t.d
 ORDER BY sc.unique_ads DESC NULLS LAST
 ```
 
-<div class="not-prose dash-context">
+<div class="dash-meta">
   <span>Run <strong>{ads_kpis[0].partition_date}</strong></span>
-  <span class="ctx-sep">·</span>
-  <span>Listings <strong>{ads_kpis[0].inspect_date}</strong></span>
+  <span class="sep">·</span>
+  <span>Listings <strong>{ads_kpis[0].inspect_date ?? '—'}</strong></span>
 </div>
 
-<div class="not-prose dash-kpis cols-3">
-<Grid cols=3 gap=sm>
-  <BigValue data={ads_kpis} value=total_unique_ads title="Total unique ads" fmt=num0 maxWidth="100%" />
-  <BigValue data={ads_kpis} value=sites_reporting_ads title="Sites reporting data" maxWidth="100%" />
-  <BigValue data={ads_kpis} value=sites_with_data title="Sites in scope" maxWidth="100%" />
-</Grid>
+<div class="kpi-row cols-3">
+  <KpiCard label="Total unique ads" value={ads_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="Sites reporting data" value={ads_kpis[0].sites_reporting_ads} tone="good" />
+  <KpiCard label="Sites in scope" value={ads_kpis[0].sites_with_data} />
 </div>
 
-<div class="not-prose dash-charts">
-<Grid cols=2 gap=md>
+<div class="chart-row">
+  <div class="chart-panel">
   <LineChart
     data={ads_trend}
     x=hub_partition_date
@@ -132,7 +127,10 @@ ORDER BY sc.unique_ads DESC NULLS LAST
     yAxisTitle="Unique listings"
     yFmt=num0
     chartAreaHeight=240
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
+  </div>
+  <div class="chart-panel">
   <BarChart
     data={ads_by_site}
     x=display_name
@@ -141,20 +139,21 @@ ORDER BY sc.unique_ads DESC NULLS LAST
     yFmt=num0
     swapXY=true
     chartAreaHeight=240
+    echartsOptions={{ backgroundColor: 'transparent' }}
   />
-</Grid>
+  </div>
 </div>
 
-<div class="not-prose dash-panel">
+<div class="dash-panel">
 <Tabs id="ads-tabs" color=primary fullWidth=true>
 
 <Tab label="By website" id="by-site">
 
-<div class="not-prose stat-line">
+<div class="stat-line">
   <strong>{ads_by_site.length}</strong> websites · sorted by listing volume descending
 </div>
 
-<div class="not-prose dash-table-scroll">
+<div class="dash-table-wrap">
 <DataTable
   data={ads_by_site}
   link=site_link
@@ -178,12 +177,12 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 
 <Tab label="By scraper" id="by-scraper">
 
-<div class="not-prose stat-line">
+<div class="stat-line">
   <strong>{ads_by_scraper.length}</strong> scrapers ·
   <strong>{ads_by_scraper.filter(d => d.all_passed).length}</strong> validation passed
 </div>
 
-<div class="not-prose dash-table-scroll">
+<div class="dash-table-wrap">
 <DataTable
   data={ads_by_scraper}
   search=true
@@ -207,6 +206,6 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 </Tabs>
 </div>
 
-<div class="not-prose report-footer">
+<div class="dash-footer">
   Count source: <code>excel_ids</code> (preferred), <code>json_summary</code>, or <code>excel_rows</code>.
 </div>

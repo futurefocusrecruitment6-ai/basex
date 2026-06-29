@@ -3,10 +3,7 @@ title: All sites
 description: Every monitored website. Click a row to open scraper health, alert history, and listing volume for that site.
 ---
 
-<div class="not-prose report-nav">
-  <a href="/">Overview</a>
-  <a href="/ads">Listing volume</a>
-</div>
+<DashNav active="sites" />
 
 ```sites
 SELECT
@@ -48,16 +45,14 @@ INNER JOIN (
 ) latest ON s.site_id = latest.site_id AND s.hub_partition_date = latest.max_date
 ```
 
-<div class="not-prose dash-kpis cols-3">
-<Grid cols=3 gap=sm>
-  <BigValue data={site_counts} value=total title="Total sites" maxWidth="100%" />
-  <BigValue data={site_counts} value=healthy title="Healthy" maxWidth="100%" />
-  <BigValue data={site_counts} value=need_attention title="Need attention" maxWidth="100%" />
-</Grid>
+<div class="kpi-row cols-3">
+  <KpiCard label="Total sites" value={site_counts[0].total} tone="primary" />
+  <KpiCard label="Healthy" value={site_counts[0].healthy} tone="good" />
+  <KpiCard label="Need attention" value={site_counts[0].need_attention} tone="warn" />
 </div>
 
-<div class="not-prose dash-panel">
-<div class="not-prose dash-table-scroll">
+<div class="dash-panel">
+<div class="dash-table-wrap">
 <DataTable
   data={sites}
   link=site_link
