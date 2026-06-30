@@ -86,22 +86,28 @@
 	border: 1px solid var(--color-border-subtle);
 }
 
-.dash-nav a {
-	display: inline-flex;
-	align-items: center;
+.dash-nav > a {
+	display: inline-flex !important;
+	flex-direction: row !important;
+	flex-wrap: nowrap !important;
+	align-items: center !important;
 	gap: 6px;
 	padding: 8px 18px;
 	border-radius: var(--radius-sm);
 	font-size: 13.5px;
 	font-weight: 500;
+	line-height: 1;
 	color: var(--color-text-secondary);
 	text-decoration: none;
 	transition: all 0.15s ease;
+	white-space: nowrap;
 }
 
-.dash-nav a svg {
+.dash-nav > a svg {
 	display: block;
 	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
 }
 
 .dash-nav a:hover {
@@ -139,6 +145,29 @@
 
 .dash-filters .grid {
 	display: contents;
+}
+
+/* Evidence Dropdown wrappers + trigger buttons */
+.dashboard .dash-filters > div {
+	display: block !important;
+	width: 100%;
+	margin: 0 !important;
+}
+
+.dashboard .dash-filters button[role='combobox'] {
+	display: inline-flex !important;
+	flex-direction: row !important;
+	align-items: center !important;
+	justify-content: flex-start;
+	width: 100%;
+	min-height: 2rem;
+	line-height: 1.25;
+}
+
+.dashboard .dash-filters button[role='combobox'] svg {
+	flex-shrink: 0;
+	align-self: center;
+	margin-left: auto;
 }
 
 /* ── Meta strip ── */

@@ -11,10 +11,11 @@
 	builtWithEvidence={false}
 	maxWidth={1680}
 	homePageName="Overview"
+	hideSidebar={true}
 	hideBreadcrumbs={true}
 	hideTOC={true}
 >
-	<div class="dashboard not-prose">
+	<div class="dashboard not-prose" slot="content">
 		<slot />
 	</div>
 </EvidenceDefaultLayout>
