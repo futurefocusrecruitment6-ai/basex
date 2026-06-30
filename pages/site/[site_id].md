@@ -59,7 +59,21 @@ SELECT
     WHEN 'failed' THEN 'Issues detected'
     WHEN 'missing' THEN 'Report missing'
     ELSE s.status
-  END AS status_label
+  END AS status_label,
+  COALESCE(
+    NULLIF(s.workflow_name, ''),
+    CASE WHEN COALESCE(s.run_place, 'github') = 'github' THEN 'Schema Monitor' ELSE 'monitor' END
+  ) AS workflow_name_label,
+  COALESCE(
+    NULLIF(s.workflow_status, ''),
+    CASE s.status WHEN 'ok' THEN 'success' WHEN 'failed' THEN 'failure' END,
+    '—'
+  ) AS workflow_status_label,
+  CASE
+    WHEN s.workflow_duration_sec IS NOT NULL
+    THEN s.workflow_duration_sec::VARCHAR || 's'
+    ELSE '—'
+  END AS workflow_duration_label
 FROM motherduck.site_daily s
 CROSS JOIN target t
 WHERE s.site_id = '${params.site_id}'
@@ -171,15 +185,15 @@ LIMIT 30
     </div>
     <div>
       <p class="meta-label">Workflow</p>
-      <p class="meta-value">{site_summary[0].workflow_name}</p>
+      <p class="meta-value">{site_summary[0].workflow_name_label}</p>
     </div>
     <div>
       <p class="meta-label">CI status</p>
-      <p class="meta-value">{site_summary[0].workflow_status}</p>
+      <p class="meta-value">{site_summary[0].workflow_status_label}</p>
     </div>
     <div>
       <p class="meta-label">Duration</p>
-      <p class="meta-value">{site_summary[0].workflow_duration_sec}s</p>
+      <p class="meta-value">{site_summary[0].workflow_duration_label}</p>
     </div>
     <div>
       <p class="meta-label">Repository</p>
