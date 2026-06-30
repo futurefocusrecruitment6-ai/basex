@@ -83,6 +83,7 @@
 .dash-nav a {
 	display: inline-flex;
 	align-items: center;
+	gap: 6px;
 	padding: 8px 18px;
 	border-radius: var(--radius-sm);
 	font-size: 13.5px;
@@ -90,6 +91,11 @@
 	color: var(--color-text-secondary);
 	text-decoration: none;
 	transition: all 0.15s ease;
+}
+
+.dash-nav a svg {
+	display: block;
+	flex-shrink: 0;
 }
 
 .dash-nav a:hover {
