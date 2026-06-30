@@ -23,7 +23,9 @@
 <style>
 	:global(body) {
 		-webkit-font-smoothing: antialiased;
-		background: #f0f2f5;
+		-moz-osx-font-smoothing: grayscale;
+		background: #f8f9fb;
+		margin: 0;
 	}
 
 	:global(.markdown) {
@@ -34,5 +36,9 @@
 	:global(.markdown > p:first-of-type),
 	:global(.markdown h1) {
 		display: none;
+	}
+
+	:global(.not-prose *) {
+		font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 	}
 </style>

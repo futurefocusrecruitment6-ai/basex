@@ -146,17 +146,17 @@ LIMIT 30
 </div>
 
 <div class="dash-meta">
-  <span>Run <strong>{site_summary[0].partition_date}</strong></span>
+  <span>Run date <strong>{site_summary[0].partition_date}</strong></span>
   <span class="sep">·</span>
-  <span>Listings <strong>{site_summary[0].inspect_date ?? '—'}</strong></span>
+  <span>Listings as of <strong>{site_summary[0].inspect_date ?? '—'}</strong></span>
 </div>
 
 <div class="kpi-row cols-5">
-  <KpiCard label="Unique ads" value={site_summary[0].unique_ads?.toLocaleString()} tone="primary" />
-  <KpiCard label="R2 files" value={site_summary[0].r2_file_count?.toLocaleString()} />
-  <KpiCard label="Scrapers passed" value={site_summary[0].scrapers_passed} tone="good" />
+  <KpiCard label="Unique Ads" value={site_summary[0].unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="R2 Files" value={site_summary[0].r2_file_count?.toLocaleString()} tone="neutral" />
+  <KpiCard label="Scrapers Passed" value={site_summary[0].scrapers_passed} tone="good" />
   <KpiCard label="Alerts" value={site_summary[0].alert_count} tone="bad" />
-  <KpiCard label="Pass rate" value="{site_summary[0].pass_pct}%" tone="good" />
+  <KpiCard label="Pass Rate" value="{site_summary[0].pass_pct}%" tone="good" />
 </div>
 
 <Details title="Run metadata">

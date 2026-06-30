@@ -46,9 +46,9 @@ INNER JOIN (
 ```
 
 <div class="kpi-row cols-3">
-  <KpiCard label="Total sites" value={site_counts[0].total} tone="primary" />
+  <KpiCard label="Total Sites" value={site_counts[0].total} tone="primary" />
   <KpiCard label="Healthy" value={site_counts[0].healthy} tone="good" />
-  <KpiCard label="Need attention" value={site_counts[0].need_attention} tone="warn" />
+  <KpiCard label="Need Attention" value={site_counts[0].need_attention} tone="warn" />
 </div>
 
 <div class="dash-panel">

@@ -106,15 +106,15 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 ```
 
 <div class="dash-meta">
-  <span>Run <strong>{ads_kpis[0].partition_date}</strong></span>
+  <span>Run date <strong>{ads_kpis[0].partition_date}</strong></span>
   <span class="sep">·</span>
-  <span>Listings <strong>{ads_kpis[0].inspect_date ?? '—'}</strong></span>
+  <span>Listings as of <strong>{ads_kpis[0].inspect_date ?? '—'}</strong></span>
 </div>
 
 <div class="kpi-row cols-3">
-  <KpiCard label="Total unique ads" value={ads_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
-  <KpiCard label="Sites reporting data" value={ads_kpis[0].sites_reporting_ads} tone="good" />
-  <KpiCard label="Sites in scope" value={ads_kpis[0].sites_with_data} />
+  <KpiCard label="Total Unique Ads" value={ads_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="Sites Reporting" value={ads_kpis[0].sites_reporting_ads} tone="good" />
+  <KpiCard label="Sites in Scope" value={ads_kpis[0].sites_with_data} tone="neutral" />
 </div>
 
 <div class="chart-row">

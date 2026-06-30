@@ -195,20 +195,20 @@ ORDER BY
 ```
 
 <div class="dash-meta">
-  <span>Run <strong>{hub_kpis[0].partition_date}</strong></span>
+  <span>Run date <strong>{hub_kpis[0].partition_date}</strong></span>
   <span class="sep">·</span>
-  <span>Listings <strong>{hub_kpis[0].inspect_date ?? '—'}</strong></span>
+  <span>Listings as of <strong>{hub_kpis[0].inspect_date ?? '—'}</strong></span>
   <span class="sep">·</span>
   <span><strong>{hub_kpis[0].sites_shown}</strong> sites in scope</span>
 </div>
 
 <div class="kpi-row">
-  <KpiCard label="Sites healthy" value={hub_kpis[0].sites_ok} tone="good" />
-  <KpiCard label="Unique ads" value={hub_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
-  <KpiCard label="R2 files" value={hub_kpis[0].total_r2_files?.toLocaleString()} />
-  <KpiCard label="Open alerts" value={hub_kpis[0].total_alerts} tone="bad" />
-  <KpiCard label="Sites with issues" value={hub_kpis[0].sites_failed} tone="bad" />
-  <KpiCard label="Missing reports" value={hub_kpis[0].sites_missing} tone="warn" />
+  <KpiCard label="Healthy Sites" value={hub_kpis[0].sites_ok} tone="good" />
+  <KpiCard label="Unique Ads" value={hub_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="R2 Files" value={hub_kpis[0].total_r2_files?.toLocaleString()} tone="neutral" />
+  <KpiCard label="Open Alerts" value={hub_kpis[0].total_alerts} tone="bad" />
+  <KpiCard label="Sites with Issues" value={hub_kpis[0].sites_failed} tone="bad" />
+  <KpiCard label="Missing Reports" value={hub_kpis[0].sites_missing} tone="warn" />
 </div>
 
 <div class="dash-panel">
@@ -392,7 +392,7 @@ ORDER BY
 </div>
 
 <div class="dash-footer">
-  Click any site row to drill into scraper detail, history, and alert breakdown.
+  Select any site row to drill into scraper detail, history, and alert breakdown.
 </div>
 
 ```all_site_links
