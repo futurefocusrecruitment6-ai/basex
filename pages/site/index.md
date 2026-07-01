@@ -20,6 +20,12 @@ SELECT
   s.hub_partition_date::VARCHAR AS last_run,
   s.unique_ads,
   s.r2_file_count,
+  s.uses_proxy,
+  CASE
+    WHEN s.uses_proxy = true THEN 'Proxy'
+    WHEN s.uses_proxy = false THEN 'Direct'
+    ELSE 'Unknown'
+  END AS proxy_label,
   '/site/' || s.site_id AS site_link
 FROM motherduck.site_daily s
 INNER JOIN (
@@ -63,6 +69,7 @@ INNER JOIN (
 >
   <Column id=display_name title="Site" />
   <Column id=country />
+  <Column id=proxy_label title="Proxy" />
   <Column id=status_label title="Status" />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=r2_file_count title="R2 files" fmt=num0 />

@@ -47,6 +47,7 @@ SELECT
   s.workflow_run_number,
   s.workflow_run_id,
   s.report_fallback,
+  s.uses_proxy,
   s.hub_partition_date::VARCHAR AS partition_date,
   s.inspect_date::VARCHAR AS inspect_date,
   ROUND(100.0 * s.scrapers_passed / NULLIF(s.scrapers_total, 0), 1) AS pass_pct,
@@ -147,13 +148,16 @@ LIMIT 30
 
 <div class="site-header">
   <div>
-    {#if site_summary[0].status === 'ok'}
-      <span class="badge badge-good">Healthy</span>
-    {:else if site_summary[0].status === 'failed'}
-      <span class="badge badge-bad">Issues detected</span>
-    {:else}
-      <span class="badge badge-warn">{site_summary[0].status_label}</span>
-    {/if}
+    <div class="site-header__badges">
+      {#if site_summary[0].status === 'ok'}
+        <span class="badge badge-good">Healthy</span>
+      {:else if site_summary[0].status === 'failed'}
+        <span class="badge badge-bad">Issues detected</span>
+      {:else}
+        <span class="badge badge-warn">{site_summary[0].status_label}</span>
+      {/if}
+      <ProxyBadge uses_proxy={site_summary[0].uses_proxy} />
+    </div>
     <h1>{site_summary[0].display_name}</h1>
     <p class="sub">{site_summary[0].website} · {site_summary[0].country}</p>
   </div>
@@ -198,6 +202,10 @@ LIMIT 30
     <div>
       <p class="meta-label">Repository</p>
       <p class="meta-value">{site_summary[0].github_username}/{site_summary[0].repo}</p>
+    </div>
+    <div>
+      <p class="meta-label">HTTP proxy</p>
+      <p class="meta-value"><ProxyBadge uses_proxy={site_summary[0].uses_proxy} /></p>
     </div>
     <div>
       <p class="meta-label">Stale fallback</p>

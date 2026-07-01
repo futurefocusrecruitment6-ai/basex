@@ -94,7 +94,12 @@ SELECT
     WHEN 'failed' THEN 'Issues'
     WHEN 'missing' THEN 'No report'
     ELSE s.status
-  END AS status_label
+  END AS status_label,
+  CASE
+    WHEN s.uses_proxy = true THEN 'Proxy'
+    WHEN s.uses_proxy = false THEN 'Direct'
+    ELSE 'Unknown'
+  END AS proxy_label
 FROM motherduck.site_daily s
 CROSS JOIN target t
 WHERE s.hub_partition_date = t.d
@@ -316,6 +321,7 @@ ORDER BY
 >
   <Column id=display_name title="Site" />
   <Column id=country />
+  <Column id=proxy_label title="Proxy" />
   <Column id=status_label title="Status" />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=r2_file_count title="R2 files" fmt=num0 />

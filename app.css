@@ -410,6 +410,13 @@
 	border: 1px solid var(--color-border-subtle);
 }
 
+.site-header__badges {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
 .site-header h1 {
 	margin: 10px 0 0;
 	font-size: 22px;
@@ -480,6 +487,22 @@
 .badge-warn {
 	background: var(--color-warn-soft);
 	color: var(--color-warn-text);
+}
+
+.badge-proxy {
+	background: var(--color-primary-soft);
+	color: var(--color-primary);
+}
+
+.badge-direct {
+	background: var(--color-surface-alt);
+	color: var(--color-text-muted);
+}
+
+.badge-muted {
+	background: var(--color-surface-alt);
+	color: var(--color-text-muted);
+	opacity: 0.85;
 }
 
 .sev-row {
