@@ -1,5 +1,6 @@
 # Monitor Hub (Evidence)
 
+
 Professional multi-site operations dashboard — scraper health, alerts, and listing volume.
 
 ## Setup
