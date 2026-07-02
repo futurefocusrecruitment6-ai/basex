@@ -140,6 +140,43 @@ GROUP BY 1
 ORDER BY 1
 ```
 
+```http_trend
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+),
+site_scope AS (
+  SELECT DISTINCT site_id
+  FROM motherduck.site_daily s
+  CROSS JOIN target t
+  WHERE s.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+    AND s.site_id IN ${inputs.site_filter.value}
+    AND COALESCE(s.run_place, 'github') IN ${inputs.run_place_filter.value}
+    AND s.status IN ${inputs.status_filter.value}
+)
+SELECT
+  s.hub_partition_date,
+  COALESCE(SUM(COALESCE(s.requests_total, 0)), 0) AS requests_total,
+  COALESCE(SUM(COALESCE(s.requests_failed, 0)), 0) AS requests_failed,
+  CASE
+    WHEN SUM(COALESCE(s.requests_total, 0)) > 0 THEN
+      ROUND(100.0 * SUM(COALESCE(s.requests_failed, 0)) / SUM(COALESCE(s.requests_total, 0)), 2)
+    ELSE 0
+  END AS error_rate_pct,
+  CASE
+    WHEN AVG(CASE WHEN s.requests_per_min IS NOT NULL THEN s.requests_per_min END) IS NULL THEN 0
+    ELSE ROUND(AVG(CASE WHEN s.requests_per_min IS NOT NULL THEN s.requests_per_min END), 2)
+  END AS requests_per_min
+FROM motherduck.site_daily s
+INNER JOIN site_scope ss ON ss.site_id = s.site_id
+CROSS JOIN target t
+WHERE s.hub_partition_date >= t.d - INTERVAL '30' DAY
+GROUP BY 1
+ORDER BY 1
+```
+
 ```scrapers_filtered
 WITH target AS (
   SELECT MAX(hub_partition_date) AS d
@@ -256,6 +293,31 @@ ORDER BY
     title="Healthy sites — 30 day"
     yAxisTitle="Sites OK"
     chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+</div>
+
+<div class="chart-row">
+  <div class="chart-panel">
+  <LineChart
+    data={http_trend}
+    x=hub_partition_date
+    y=requests_per_min
+    title="Request rate — 30 day"
+    yAxisTitle="Req/min"
+    chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+  <div class="chart-panel">
+  <LineChart
+    data={http_trend}
+    x=hub_partition_date
+    y=error_rate_pct
+    title="Error rate — 30 day"
+    yAxisTitle="Error %"
+    chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
   </div>

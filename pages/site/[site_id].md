@@ -146,6 +146,23 @@ ORDER BY s.hub_partition_date DESC
 LIMIT 30
 ```
 
+```site_http_history
+SELECT
+  s.hub_partition_date,
+  COALESCE(s.requests_total, 0) AS requests_total,
+  COALESCE(s.requests_failed, 0) AS requests_failed,
+  CASE
+    WHEN COALESCE(s.requests_total, 0) > 0 THEN
+      ROUND(100.0 * COALESCE(s.requests_failed, 0) / COALESCE(s.requests_total, 0), 2)
+    ELSE 0
+  END AS error_rate_pct,
+  COALESCE(s.requests_per_min, 0) AS requests_per_min
+FROM motherduck.site_daily s
+WHERE s.site_id = '${params.site_id}'
+ORDER BY s.hub_partition_date DESC
+LIMIT 30
+```
+
 <div class="site-header">
   <div>
     <div class="site-header__badges">
@@ -266,6 +283,31 @@ LIMIT 30
     title="Scrapers passed — 30 runs"
     yAxisTitle="Count"
     chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+</div>
+
+<div class="chart-row">
+  <div class="chart-panel">
+  <LineChart
+    data={site_http_history}
+    x=hub_partition_date
+    y=requests_per_min
+    title="Request rate — 30 runs"
+    yAxisTitle="Req/min"
+    chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+  <div class="chart-panel">
+  <LineChart
+    data={site_http_history}
+    x=hub_partition_date
+    y=error_rate_pct
+    title="Error rate — 30 runs"
+    yAxisTitle="Error %"
+    chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
   </div>
