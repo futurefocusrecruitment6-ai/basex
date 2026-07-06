@@ -441,10 +441,10 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
       </summary>
       <div class="dash-table-wrap mt-3">
       <DataTable
-        data={ads_by_subcategory_focus.filter(d => d.site_focus === c.site_focus && d.category === c.category)}
+        data={ads_by_subcategory_focus.filter(d => d.site_focus === c.site_focus && d.category === c.category && (d.subcategory !== '(no subcategory)' || d.level_3 !== '(no level-3)'))}
         rows=all
         emptySet=pass
-        emptyMessage="No subcategories found for this category."
+        emptyMessage="No subcategory data exists yet for this category in monitor_hub."
       >
         <Column id=subcategory title="Subcategory" />
         <Column id=level_3 title="Level 3" />

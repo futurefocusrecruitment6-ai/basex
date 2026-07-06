@@ -105,7 +105,12 @@ Hub aggregation runs at **10:00 UTC** (`.github/workflows/monitor-hub.yml`). Sch
 3. Copy the hook URL.
 4. In Pro1-Os → **Settings → Secrets → Actions**, add:
    - `VERCEL_DEPLOY_HOOK` = hook URL
-5. Add a step at the end of `monitor-hub.yml`:
+5. Add this workflow file in the repo (already added in this dashboard workspace):
+
+  - `.github/workflows/dashboard-refresh-after-monitors.yml`
+  - It listens for `workflow_run` completion of the monitor workflow and triggers Vercel only when the run is successful on `main`.
+
+  If you prefer to keep everything in one workflow, add this step at the end of `monitor-hub.yml` instead:
 
 ```yaml
       - name: Trigger Vercel rebuild

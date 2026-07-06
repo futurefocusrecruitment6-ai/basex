@@ -1,0 +1,28 @@
+name: Dashboard Refresh After Monitors
+
+on:
+  workflow_run:
+    workflows:
+      - monitor-hub
+      - Monitor Hub
+      - Monitor Hub Workflow
+    types:
+      - completed
+
+jobs:
+  trigger-vercel-deploy:
+    name: Trigger Vercel Deploy Hook
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel rebuild
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
+            echo "VERCEL_DEPLOY_HOOK is not set."
+            exit 1
+          fi
+
+          curl -fsS -X POST "$VERCEL_DEPLOY_HOOK"
+          echo "Triggered Vercel rebuild after successful monitor workflow run."
