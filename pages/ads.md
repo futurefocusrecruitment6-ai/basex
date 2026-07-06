@@ -269,7 +269,6 @@ SELECT
   COUNT(*) AS scrapers_count
 FROM normalized
 WHERE site_focus IN ${inputs.site_focus_filter.value}
-  AND COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') IN ${inputs.category_focus_filter.value}
 GROUP BY 1, 2, 3, 4
 ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
 ```
@@ -380,12 +379,11 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
 <div id="ads-hierarchy" class="dash-panel">
   <h2 class="mt-0">4sale and boshmalan drill-down</h2>
   <div class="stat-line">
-    Category and subcategory ad counts from scraper rows for the selected run and country filters.
+    Click a category to open its subcategories and deeper levels.
   </div>
 
-  <Grid cols=2 gap=sm>
+  <Grid cols=1 gap=sm>
     <Dropdown name=site_focus_filter title="Website focus" data={site_focus_options} value=site_focus multiple selectAllByDefault />
-    <Dropdown name=category_focus_filter title="Category" data={ads_hierarchy_category_options} value=category multiple selectAllByDefault />
   </Grid>
 
   <div class="chart-row mt-4">
@@ -431,21 +429,31 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   </DataTable>
   </div>
 
-  <div class="dash-table-wrap mt-4">
-  <DataTable
-    data={ads_by_subcategory_focus}
-    search=true
-    rows=all
-    emptySet=pass
-    emptyMessage="No subcategory rows for the selected filters."
-  >
-    <Column id=site_focus title="Website" />
-    <Column id=category title="Category" />
-    <Column id=subcategory title="Subcategory" />
-    <Column id=level_3 title="Level 3" />
-    <Column id=unique_ads title="Unique ads" fmt=num0 />
-    <Column id=scrapers_count title="Scraper rows" />
-  </DataTable>
+  <div class="stat-line mt-4">
+    Expand any category below to see its subcategories.
+  </div>
+
+  <div class="space-y-3 mt-3">
+  {#each ads_by_category_focus as c}
+    <details class="rounded-lg border border-base-300/70 bg-base-100 p-3">
+      <summary class="cursor-pointer font-medium">
+        {c.site_focus} / {c.category} - {c.unique_ads?.toLocaleString()} ads
+      </summary>
+      <div class="dash-table-wrap mt-3">
+      <DataTable
+        data={ads_by_subcategory_focus.filter(d => d.site_focus === c.site_focus && d.category === c.category)}
+        rows=all
+        emptySet=pass
+        emptyMessage="No subcategories found for this category."
+      >
+        <Column id=subcategory title="Subcategory" />
+        <Column id=level_3 title="Level 3" />
+        <Column id=unique_ads title="Unique ads" fmt=num0 />
+        <Column id=scrapers_count title="Scraper rows" />
+      </DataTable>
+      </div>
+    </details>
+  {/each}
   </div>
 </div>
 
