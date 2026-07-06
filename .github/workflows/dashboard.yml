@@ -1,4 +1,4 @@
-name: Dashboard Refresh After Monitors
+name: Dashboard Refresh After Monitor
 
 on:
   workflow_run:
