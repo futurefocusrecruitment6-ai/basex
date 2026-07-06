@@ -105,6 +105,175 @@ WHERE sc.hub_partition_date = t.d
 ORDER BY sc.unique_ads DESC NULLS LAST
 ```
 
+```site_focus_options
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scoped AS (
+  SELECT DISTINCT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE sc.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+)
+SELECT site_focus
+FROM scoped
+WHERE site_focus IS NOT NULL
+ORDER BY site_focus
+```
+
+```ads_hierarchy_category_options
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scoped AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    TRIM(COALESCE(sc.scraper, '')) AS scraper_name
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE sc.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+), normalized AS (
+  SELECT
+    site_focus,
+    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path
+  FROM scoped
+  WHERE site_focus IS NOT NULL
+)
+SELECT DISTINCT
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category
+FROM normalized
+WHERE site_focus IN ${inputs.site_focus_filter.value}
+ORDER BY category
+```
+
+```ads_hierarchy_totals
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scoped AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    COALESCE(sc.unique_ads, 0) AS unique_ads
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE sc.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+)
+SELECT
+  site_focus,
+  SUM(unique_ads) AS unique_ads,
+  COUNT(*) AS scrapers_count
+FROM scoped
+WHERE site_focus IS NOT NULL
+GROUP BY 1
+ORDER BY unique_ads DESC
+```
+
+```ads_by_category_focus
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scoped AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    TRIM(COALESCE(sc.scraper, '')) AS scraper_name,
+    COALESCE(sc.unique_ads, 0) AS unique_ads
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE sc.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+), normalized AS (
+  SELECT
+    site_focus,
+    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    unique_ads
+  FROM scoped
+  WHERE site_focus IS NOT NULL
+)
+SELECT
+  site_focus,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+  SUM(unique_ads) AS unique_ads,
+  COUNT(*) AS scrapers_count
+FROM normalized
+WHERE site_focus IN ${inputs.site_focus_filter.value}
+GROUP BY 1, 2
+ORDER BY site_focus, unique_ads DESC, category
+```
+
+```ads_by_subcategory_focus
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scoped AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    TRIM(COALESCE(sc.scraper, '')) AS scraper_name,
+    COALESCE(sc.unique_ads, 0) AS unique_ads
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE sc.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+), normalized AS (
+  SELECT
+    site_focus,
+    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    unique_ads
+  FROM scoped
+  WHERE site_focus IS NOT NULL
+)
+SELECT
+  site_focus,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)') AS subcategory,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '(no level-3)') AS level_3,
+  SUM(unique_ads) AS unique_ads,
+  COUNT(*) AS scrapers_count
+FROM normalized
+WHERE site_focus IN ${inputs.site_focus_filter.value}
+  AND COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') IN ${inputs.category_focus_filter.value}
+GROUP BY 1, 2, 3, 4
+ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
+```
+
 <div class="dash-meta">
   <span>Run date <strong>{ads_kpis[0].partition_date}</strong></span>
   <span class="sep">·</span>
@@ -112,7 +281,9 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 </div>
 
 <div class="kpi-row cols-3">
-  <KpiCard label="Total Unique Ads" value={ads_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
+  <a href="#ads-hierarchy" class="no-underline block">
+    <KpiCard label="Total Unique Ads (click to drill down)" value={ads_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
+  </a>
   <KpiCard label="Sites Reporting" value={ads_kpis[0].sites_reporting_ads} tone="good" />
   <KpiCard label="Sites in Scope" value={ads_kpis[0].sites_with_data} tone="neutral" />
 </div>
@@ -204,6 +375,78 @@ ORDER BY sc.unique_ads DESC NULLS LAST
 </Tab>
 
 </Tabs>
+</div>
+
+<div id="ads-hierarchy" class="dash-panel">
+  <h2 class="mt-0">4sale and boshmalan drill-down</h2>
+  <div class="stat-line">
+    Category and subcategory ad counts from scraper rows for the selected run and country filters.
+  </div>
+
+  <Grid cols=2 gap=sm>
+    <Dropdown name=site_focus_filter title="Website focus" data={site_focus_options} value=site_focus multiple selectAllByDefault />
+    <Dropdown name=category_focus_filter title="Category" data={ads_hierarchy_category_options} value=category multiple selectAllByDefault />
+  </Grid>
+
+  <div class="chart-row mt-4">
+    <div class="chart-panel">
+    <BarChart
+      data={ads_by_category_focus}
+      x=category
+      y=unique_ads
+      series=site_focus
+      title="Ads by category"
+      yFmt=num0
+      swapXY=true
+      chartAreaHeight=260
+      echartsOptions={{ backgroundColor: 'transparent' }}
+    />
+    </div>
+    <div class="dash-table-wrap">
+    <DataTable
+      data={ads_hierarchy_totals}
+      rows=all
+      emptySet=pass
+      emptyMessage="No 4sale or boshmalan rows for the selected filters."
+    >
+      <Column id=site_focus title="Website" />
+      <Column id=unique_ads title="Unique ads" fmt=num0 />
+      <Column id=scrapers_count title="Scraper rows" />
+    </DataTable>
+    </div>
+  </div>
+
+  <div class="dash-table-wrap mt-4">
+  <DataTable
+    data={ads_by_category_focus}
+    search=true
+    rows=all
+    emptySet=pass
+    emptyMessage="No category rows for the selected filters."
+  >
+    <Column id=site_focus title="Website" />
+    <Column id=category title="Category" />
+    <Column id=unique_ads title="Unique ads" fmt=num0 />
+    <Column id=scrapers_count title="Scraper rows" />
+  </DataTable>
+  </div>
+
+  <div class="dash-table-wrap mt-4">
+  <DataTable
+    data={ads_by_subcategory_focus}
+    search=true
+    rows=all
+    emptySet=pass
+    emptyMessage="No subcategory rows for the selected filters."
+  >
+    <Column id=site_focus title="Website" />
+    <Column id=category title="Category" />
+    <Column id=subcategory title="Subcategory" />
+    <Column id=level_3 title="Level 3" />
+    <Column id=unique_ads title="Unique ads" fmt=num0 />
+    <Column id=scrapers_count title="Scraper rows" />
+  </DataTable>
+  </div>
 </div>
 
 <div class="dash-footer">
