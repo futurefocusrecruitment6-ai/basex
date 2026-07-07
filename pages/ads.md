@@ -35,7 +35,6 @@ WITH target AS (
 )
 SELECT
   COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
-  0 AS total_unique_phones,
   COUNT(*) AS sites_with_data,
   COUNT(*) FILTER (WHERE s.unique_ads > 0) AS sites_reporting_ads,
   MAX(s.hub_partition_date)::VARCHAR AS partition_date,
@@ -69,7 +68,6 @@ SELECT
   s.country,
   s.website,
   s.unique_ads,
-  0 AS unique_phones,
   s.scrapers_passed,
   s.scrapers_total,
   s.status,
@@ -93,7 +91,6 @@ SELECT
   s.country,
   sc.scraper,
   sc.unique_ads,
-  0 AS unique_phones,
   sc.total_rows,
   sc.ads_source,
   sc.all_passed,
@@ -177,7 +174,7 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    0 AS unique_phones,
+    COALESCE(s.unique_phones, 0) AS unique_phones,
     COALESCE(s.unique_ads, 0) AS unique_ads
   FROM motherduck.site_daily s
   CROSS JOIN target t
@@ -211,7 +208,7 @@ WITH scoped AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    0 AS unique_phones
+    COALESCE(s.unique_phones, 0) AS unique_phones
   FROM motherduck.site_daily s
   WHERE s.hub_partition_date >= CURRENT_DATE - INTERVAL '60' DAY
     AND s.country IN ${inputs.country_filter.value}
@@ -342,11 +339,10 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   <span>Listings as of <strong>{ads_kpis[0].inspect_date ?? '—'}</strong></span>
 </div>
 
-<div class="kpi-row cols-4">
+<div class="kpi-row cols-3">
   <a href="#ads-hierarchy" class="no-underline block">
     <KpiCard label="Total Unique Ads (click to drill down)" value={ads_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
   </a>
-  <KpiCard label="Total Unique Phones" value={ads_kpis[0].total_unique_phones?.toLocaleString()} tone="good" />
   <KpiCard label="Sites Reporting" value={ads_kpis[0].sites_reporting_ads} tone="good" />
   <KpiCard label="Sites in Scope" value={ads_kpis[0].sites_with_data} tone="neutral" />
 </div>
@@ -400,7 +396,6 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   <Column id=country />
   <Column id=website />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
-  <Column id=unique_phones title="Unique phones" fmt=num0 />
   <Column id=scrapers_passed title="Scrapers OK" />
   <Column id=scrapers_total title="Scrapers" />
   <Column id=status title="Status" />
