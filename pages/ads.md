@@ -35,7 +35,7 @@ WITH target AS (
 )
 SELECT
   COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
-  COALESCE(SUM(s.unique_phones), 0) AS total_unique_phones,
+  0 AS total_unique_phones,
   COUNT(*) AS sites_with_data,
   COUNT(*) FILTER (WHERE s.unique_ads > 0) AS sites_reporting_ads,
   MAX(s.hub_partition_date)::VARCHAR AS partition_date,
@@ -69,7 +69,7 @@ SELECT
   s.country,
   s.website,
   s.unique_ads,
-  s.unique_phones,
+  0 AS unique_phones,
   s.scrapers_passed,
   s.scrapers_total,
   s.status,
@@ -93,7 +93,7 @@ SELECT
   s.country,
   sc.scraper,
   sc.unique_ads,
-  sc.unique_phones,
+  0 AS unique_phones,
   sc.total_rows,
   sc.ads_source,
   sc.all_passed,
@@ -177,7 +177,7 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    COALESCE(s.unique_phones, 0) AS unique_phones,
+    0 AS unique_phones,
     COALESCE(s.unique_ads, 0) AS unique_ads
   FROM motherduck.site_daily s
   CROSS JOIN target t
@@ -211,7 +211,7 @@ WITH scoped AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    COALESCE(s.unique_phones, 0) AS unique_phones
+    0 AS unique_phones
   FROM motherduck.site_daily s
   WHERE s.hub_partition_date >= CURRENT_DATE - INTERVAL '60' DAY
     AND s.country IN ${inputs.country_filter.value}
@@ -429,7 +429,6 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   <Column id=country />
   <Column id=scraper title="Category / scraper" />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
-  <Column id=unique_phones title="Unique phones" fmt=num0 />
   <Column id=ads_source title="Source" />
   <Column id=total_rows title="Excel rows" fmt=num0 />
   <Column id=files_found title="Files" />
