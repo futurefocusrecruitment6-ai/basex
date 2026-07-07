@@ -1,18 +1,15 @@
 name: Dashboard Refresh After Monitor
 
 on:
-  workflow_run:
-    workflows:
-      - monitor-hub
-      - Monitor Hub
-      - Monitor Hub Workflow
+  repository_dispatch:
     types:
-      - completed
+      - monitor-hub-completed
+  workflow_dispatch:
 
 jobs:
   trigger-vercel-deploy:
     name: Trigger Vercel Deploy Hook
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.client_payload.conclusion == 'success' && github.event.client_payload.branch == 'main') }}
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel rebuild

@@ -35,6 +35,7 @@ WITH target AS (
 )
 SELECT
   COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
+  COALESCE(SUM(s.unique_phones), 0) AS total_unique_phones,
   COUNT(*) AS sites_with_data,
   COUNT(*) FILTER (WHERE s.unique_ads > 0) AS sites_reporting_ads,
   MAX(s.hub_partition_date)::VARCHAR AS partition_date,
@@ -68,6 +69,7 @@ SELECT
   s.country,
   s.website,
   s.unique_ads,
+  s.unique_phones,
   s.scrapers_passed,
   s.scrapers_total,
   s.status,
@@ -91,6 +93,7 @@ SELECT
   s.country,
   sc.scraper,
   sc.unique_ads,
+  sc.unique_phones,
   sc.total_rows,
   sc.ads_source,
   sc.all_passed,
@@ -161,6 +164,66 @@ SELECT DISTINCT
 FROM normalized
 WHERE site_focus IN ${inputs.site_focus_filter.value}
 ORDER BY category
+```
+
+```phone_focus_totals
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scoped AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    COALESCE(s.unique_phones, 0) AS unique_phones,
+    COALESCE(s.unique_ads, 0) AS unique_ads
+  FROM motherduck.site_daily s
+  CROSS JOIN target t
+  WHERE s.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+)
+SELECT
+  site_focus,
+  SUM(unique_phones) AS unique_phones,
+  SUM(unique_ads) AS unique_ads,
+  COUNT(*) AS sites_count
+FROM scoped
+WHERE site_focus IN ${inputs.site_focus_filter.value}
+GROUP BY 1
+ORDER BY unique_phones DESC, unique_ads DESC
+```
+
+```phone_focus_kpis
+SELECT
+  COALESCE(SUM(unique_phones), 0) AS total_unique_phones,
+  COALESCE(SUM(unique_ads), 0) AS total_unique_ads,
+  COUNT(*) AS websites_in_focus
+FROM phone_focus_totals
+```
+
+```phone_focus_daily
+WITH scoped AS (
+  SELECT
+    s.hub_partition_date,
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    COALESCE(s.unique_phones, 0) AS unique_phones
+  FROM motherduck.site_daily s
+  WHERE s.hub_partition_date >= CURRENT_DATE - INTERVAL '60' DAY
+    AND s.country IN ${inputs.country_filter.value}
+)
+SELECT
+  hub_partition_date,
+  site_focus,
+  SUM(unique_phones) AS unique_phones
+FROM scoped
+WHERE site_focus IN ${inputs.site_focus_filter.value}
+GROUP BY 1, 2
+ORDER BY 1, 2
 ```
 
 ```ads_hierarchy_totals
@@ -279,10 +342,11 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   <span>Listings as of <strong>{ads_kpis[0].inspect_date ?? '—'}</strong></span>
 </div>
 
-<div class="kpi-row cols-3">
+<div class="kpi-row cols-4">
   <a href="#ads-hierarchy" class="no-underline block">
     <KpiCard label="Total Unique Ads (click to drill down)" value={ads_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
   </a>
+  <KpiCard label="Total Unique Phones" value={ads_kpis[0].total_unique_phones?.toLocaleString()} tone="good" />
   <KpiCard label="Sites Reporting" value={ads_kpis[0].sites_reporting_ads} tone="good" />
   <KpiCard label="Sites in Scope" value={ads_kpis[0].sites_with_data} tone="neutral" />
 </div>
@@ -336,6 +400,7 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   <Column id=country />
   <Column id=website />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=unique_phones title="Unique phones" fmt=num0 />
   <Column id=scrapers_passed title="Scrapers OK" />
   <Column id=scrapers_total title="Scrapers" />
   <Column id=status title="Status" />
@@ -364,6 +429,7 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   <Column id=country />
   <Column id=scraper title="Category / scraper" />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=unique_phones title="Unique phones" fmt=num0 />
   <Column id=ads_source title="Source" />
   <Column id=total_rows title="Excel rows" fmt=num0 />
   <Column id=files_found title="Files" />
@@ -385,6 +451,40 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
   <Grid cols=1 gap=sm>
     <Dropdown name=site_focus_filter title="Website focus" data={site_focus_options} value=site_focus multiple selectAllByDefault />
   </Grid>
+
+  <div class="kpi-row cols-3 mt-4">
+    <KpiCard label="Focus Unique Phones" value={phone_focus_kpis[0]?.total_unique_phones?.toLocaleString()} tone="good" />
+    <KpiCard label="Focus Unique Ads" value={phone_focus_kpis[0]?.total_unique_ads?.toLocaleString()} tone="primary" />
+    <KpiCard label="Focused Websites" value={phone_focus_kpis[0]?.websites_in_focus} tone="neutral" />
+  </div>
+
+  <div class="chart-row mt-4">
+    <div class="chart-panel">
+    <LineChart
+      data={phone_focus_daily}
+      x=hub_partition_date
+      y=unique_phones
+      series=site_focus
+      title="Daily unique phones (4sale / boshmalan)"
+      yFmt=num0
+      chartAreaHeight=260
+      echartsOptions={{ backgroundColor: 'transparent' }}
+    />
+    </div>
+    <div class="dash-table-wrap">
+    <DataTable
+      data={phone_focus_totals}
+      rows=all
+      emptySet=pass
+      emptyMessage="No phone rows found for the selected filters."
+    >
+      <Column id=site_focus title="Website" />
+      <Column id=unique_phones title="Unique phones" fmt=num0 />
+      <Column id=unique_ads title="Unique ads" fmt=num0 />
+      <Column id=sites_count title="Sites" />
+    </DataTable>
+    </div>
+  </div>
 
   <div class="chart-row mt-4">
     <div class="chart-panel">
