@@ -168,15 +168,25 @@ WITH target AS (
   SELECT MAX(hub_partition_date) AS d
   FROM motherduck.hub_daily
   WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scraper_phone AS (
+  SELECT
+    hub_partition_date,
+    site_id,
+    COALESCE(SUM(unique_phones), 0) AS scraper_unique_phones
+  FROM motherduck.scraper_daily
+  GROUP BY 1, 2
 ), scoped AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    COALESCE(s.unique_phones, 0) AS unique_phones,
+    GREATEST(COALESCE(s.unique_phones, 0), COALESCE(sp.scraper_unique_phones, 0)) AS unique_phones,
     COALESCE(s.unique_ads, 0) AS unique_ads
   FROM motherduck.site_daily s
+  LEFT JOIN scraper_phone sp
+    ON sp.hub_partition_date = s.hub_partition_date
+   AND sp.site_id = s.site_id
   CROSS JOIN target t
   WHERE s.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
@@ -201,15 +211,25 @@ FROM phone_focus_totals
 ```
 
 ```phone_focus_daily
-WITH scoped AS (
+WITH scraper_phone AS (
+  SELECT
+    hub_partition_date,
+    site_id,
+    COALESCE(SUM(unique_phones), 0) AS scraper_unique_phones
+  FROM motherduck.scraper_daily
+  GROUP BY 1, 2
+), scoped AS (
   SELECT
     s.hub_partition_date,
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    COALESCE(s.unique_phones, 0) AS unique_phones
+    GREATEST(COALESCE(s.unique_phones, 0), COALESCE(sp.scraper_unique_phones, 0)) AS unique_phones
   FROM motherduck.site_daily s
+  LEFT JOIN scraper_phone sp
+    ON sp.hub_partition_date = s.hub_partition_date
+   AND sp.site_id = s.site_id
   WHERE s.hub_partition_date >= CURRENT_DATE - INTERVAL '60' DAY
     AND s.country IN ${inputs.country_filter.value}
 )
