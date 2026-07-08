@@ -220,7 +220,11 @@ WITH target AS (
 ), normalized AS (
   SELECT
     site_focus,
-    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    TRIM(BOTH '/' FROM REGEXP_REPLACE(
+      TRIM(COALESCE(scraper_name, '')),
+      '\\s*(?:/|::|>|-)+\\s*',
+      '/'
+    )) AS scraper_path,
     unique_ads
   FROM scoped
   WHERE site_focus IS NOT NULL
