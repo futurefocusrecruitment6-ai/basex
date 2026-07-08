@@ -152,7 +152,7 @@ WITH target AS (
 ), normalized AS (
   SELECT
     site_focus,
-    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path
+    REPLACE(REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path
   FROM scoped
   WHERE site_focus IS NOT NULL
 )

@@ -100,7 +100,7 @@ WITH target AS (
 ), normalized AS (
   SELECT
     site_focus,
-    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    REPLACE(REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
     unique_ads
   FROM scoped
   WHERE site_focus IS NOT NULL
@@ -127,7 +127,7 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
     COALESCE(sc.unique_ads, 0) AS unique_ads,
     COALESCE(sc.total_rows, 0) AS total_rows
   FROM motherduck.scraper_daily sc
@@ -163,7 +163,7 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
     COALESCE(sc.unique_ads, 0) AS unique_ads,
     COALESCE(sc.total_rows, 0) AS total_rows
   FROM motherduck.scraper_daily sc
