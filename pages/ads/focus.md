@@ -127,27 +127,24 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    TRIM(COALESCE(ssd.scraper, '')) AS category,
-    TRIM(COALESCE(ssd.subcategory, '')) AS subcategory,
-    TRIM(COALESCE(ssd.level_3, '')) AS level_3,
-    COALESCE(ssd.ads_count, ssd.sheet_rows, 0) AS unique_ads,
-    COALESCE(ssd.sheet_rows, 0) AS sheet_rows,
-    COALESCE(ssd.sheets_count, 0) AS sheets_count
-  FROM motherduck.scraper_subcategory_daily ssd
+    REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    COALESCE(sc.unique_ads, 0) AS unique_ads,
+    COALESCE(sc.total_rows, 0) AS total_rows
+  FROM motherduck.scraper_daily sc
   JOIN motherduck.site_daily s
-    ON ssd.hub_partition_date = s.hub_partition_date
-   AND ssd.site_id = s.site_id
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
   CROSS JOIN target t
-  WHERE ssd.hub_partition_date = t.d
+  WHERE sc.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
 )
 SELECT
   site_focus,
-  COALESCE(NULLIF(category, ''), '(uncategorized)') AS category,
-  COALESCE(NULLIF(subcategory, ''), '(uncategorized)') AS subcategory,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)') AS subcategory,
   SUM(unique_ads) AS unique_ads,
-  SUM(sheet_rows) AS sheet_rows,
-  SUM(sheets_count) AS sheets_count,
+  SUM(total_rows) AS sheet_rows,
+  COUNT(*) AS sheets_count,
   COUNT(*) AS hierarchy_rows
 FROM scoped
 WHERE site_focus IN ${inputs.site_focus_filter.value}
@@ -166,32 +163,29 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    TRIM(COALESCE(ssd.scraper, '')) AS category,
-    TRIM(COALESCE(ssd.subcategory, '')) AS subcategory,
-    TRIM(COALESCE(ssd.level_3, '')) AS level_3,
-    COALESCE(ssd.ads_count, ssd.sheet_rows, 0) AS unique_ads,
-    COALESCE(ssd.sheet_rows, 0) AS sheet_rows,
-    COALESCE(ssd.sheets_count, 0) AS sheets_count
-  FROM motherduck.scraper_subcategory_daily ssd
+    REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    COALESCE(sc.unique_ads, 0) AS unique_ads,
+    COALESCE(sc.total_rows, 0) AS total_rows
+  FROM motherduck.scraper_daily sc
   JOIN motherduck.site_daily s
-    ON ssd.hub_partition_date = s.hub_partition_date
-   AND ssd.site_id = s.site_id
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
   CROSS JOIN target t
-  WHERE ssd.hub_partition_date = t.d
+  WHERE sc.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
 )
 SELECT
   site_focus,
-  COALESCE(NULLIF(category, ''), '(uncategorized)') AS category,
-  COALESCE(NULLIF(subcategory, ''), '(uncategorized)') AS subcategory,
-  COALESCE(NULLIF(level_3, ''), '(leaf)') AS level_3,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)') AS subcategory,
+  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '(leaf)') AS level_3,
   SUM(unique_ads) AS unique_ads,
-  SUM(sheet_rows) AS sheet_rows,
-  SUM(sheets_count) AS sheets_count,
+  SUM(total_rows) AS sheet_rows,
+  COUNT(*) AS sheets_count,
   COUNT(*) AS hierarchy_rows
 FROM scoped
 WHERE site_focus IN ${inputs.site_focus_filter.value}
-  AND COALESCE(level_3, '') <> ''
+  AND COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '') <> ''
 GROUP BY 1, 2, 3, 4
 ORDER BY site_focus, category, subcategory, unique_ads DESC, level_3
 ```
@@ -404,7 +398,7 @@ ORDER BY 1, 2
 </div>
 
 <div class="stat-line mt-4">
-  Category totals come from scraper rows. The expanded sections below use the real sheet hierarchy exported by the 4sale monitor, including deeper level-3 rows when they exist.
+  Category, subcategory, and brand-level drill-down are parsed from scraper names (for example: Used Car / Toyota / Corolla) for the selected run.
 </div>
 
 <div class="space-y-3 mt-3">
@@ -418,7 +412,7 @@ ORDER BY 1, 2
       data={ads_by_subcategory_focus.filter(d => d.site_focus === c.site_focus && d.category === c.category)}
       rows=all
       emptySet=pass
-      emptyMessage="No sheet-level subcategories were exported for this category in monitor_hub."
+      emptyMessage="No subcategory rows were found for this category in scraper names."
     >
       <Column id=subcategory title="Subcategory" />
       <Column id=unique_ads title="Unique ads" fmt=num0 />
@@ -440,9 +434,9 @@ ORDER BY 1, 2
               data={ads_by_level3_focus.filter(d => d.site_focus === sc.site_focus && d.category === sc.category && d.subcategory === sc.subcategory)}
               rows=all
               emptySet=pass
-              emptyMessage="No deeper level-3 rows exist for this subcategory."
+              emptyMessage="No brand-level rows exist for this subcategory."
             >
-              <Column id=level_3 title="Level 3" />
+              <Column id=level_3 title="Brand / Level 3" />
               <Column id=unique_ads title="Unique ads" fmt=num0 />
               <Column id=sheet_rows title="Sheet rows" fmt=num0 />
               <Column id=sheets_count title="Sheets" />
