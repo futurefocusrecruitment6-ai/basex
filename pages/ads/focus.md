@@ -190,6 +190,161 @@ GROUP BY 1, 2, 3, 4
 ORDER BY site_focus, category, subcategory, unique_ads DESC, level_3
 ```
 
+```weekly_ad_change_summary
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), prev_target AS (
+  SELECT MAX(h.hub_partition_date) AS d
+  FROM motherduck.hub_daily h
+  CROSS JOIN target t
+  WHERE h.hub_partition_date < t.d
+    AND DATE_TRUNC('week', h.hub_partition_date) = DATE_TRUNC('week', t.d) - INTERVAL '7' DAY
+), current_scope AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    COALESCE(sc.unique_ads, 0) AS unique_ads
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE sc.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+), prev_scope AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    COALESCE(sc.unique_ads, 0) AS unique_ads
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN prev_target pt
+  WHERE sc.hub_partition_date = pt.d
+    AND s.country IN ${inputs.country_filter.value}
+), current_ads AS (
+  SELECT site_focus, SUM(unique_ads) AS current_week_ads
+  FROM current_scope
+  WHERE site_focus IS NOT NULL
+  GROUP BY 1
+), prev_ads AS (
+  SELECT site_focus, SUM(unique_ads) AS previous_week_ads
+  FROM prev_scope
+  WHERE site_focus IS NOT NULL
+  GROUP BY 1
+)
+SELECT
+  COALESCE(c.site_focus, p.site_focus) AS site_focus,
+  COALESCE(c.current_week_ads, 0) AS current_week_ads,
+  COALESCE(p.previous_week_ads, 0) AS previous_week_ads,
+  COALESCE(c.current_week_ads, 0) - COALESCE(p.previous_week_ads, 0) AS ads_change,
+  CASE
+    WHEN COALESCE(p.previous_week_ads, 0) > 0 THEN ROUND(100.0 * (COALESCE(c.current_week_ads, 0) - COALESCE(p.previous_week_ads, 0)) / COALESCE(p.previous_week_ads, 0), 2)
+    WHEN COALESCE(c.current_week_ads, 0) > 0 THEN 100.0
+    ELSE 0
+  END AS ads_change_pct
+FROM current_ads c
+FULL OUTER JOIN prev_ads p
+  ON c.site_focus = p.site_focus
+WHERE COALESCE(c.site_focus, p.site_focus) IN ${inputs.site_focus_filter.value}
+```
+
+```weekly_ad_change
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), prev_target AS (
+  SELECT MAX(h.hub_partition_date) AS d
+  FROM motherduck.hub_daily h
+  CROSS JOIN target t
+  WHERE h.hub_partition_date < t.d
+    AND DATE_TRUNC('week', h.hub_partition_date) = DATE_TRUNC('week', t.d) - INTERVAL '7' DAY
+), current_scope AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    TRIM(COALESCE(sc.scraper, '')) AS scraper_name,
+    COALESCE(sc.unique_ads, 0) AS unique_ads
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE sc.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+), prev_scope AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    TRIM(COALESCE(sc.scraper, '')) AS scraper_name,
+    COALESCE(sc.unique_ads, 0) AS unique_ads
+  FROM motherduck.scraper_daily sc
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN prev_target pt
+  WHERE sc.hub_partition_date = pt.d
+    AND s.country IN ${inputs.country_filter.value}
+), current_normalized AS (
+  SELECT
+    site_focus,
+    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    unique_ads
+  FROM current_scope
+  WHERE site_focus IS NOT NULL
+), prev_normalized AS (
+  SELECT
+    site_focus,
+    REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    unique_ads
+  FROM prev_scope
+  WHERE site_focus IS NOT NULL
+), current_summary AS (
+  SELECT
+    site_focus,
+    COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+    SUM(unique_ads) AS current_week_ads
+  FROM current_normalized
+  GROUP BY 1, 2
+), prev_summary AS (
+  SELECT
+    site_focus,
+    COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+    SUM(unique_ads) AS previous_week_ads
+  FROM prev_normalized
+  GROUP BY 1, 2
+)
+SELECT
+  COALESCE(c.site_focus, p.site_focus) AS site_focus,
+  COALESCE(c.category, p.category) AS category,
+  COALESCE(c.current_week_ads, 0) AS current_week_ads,
+  COALESCE(p.previous_week_ads, 0) AS previous_week_ads,
+  COALESCE(c.current_week_ads, 0) - COALESCE(p.previous_week_ads, 0) AS ads_change,
+  CASE
+    WHEN COALESCE(p.previous_week_ads, 0) > 0 THEN ROUND(100.0 * (COALESCE(c.current_week_ads, 0) - COALESCE(p.previous_week_ads, 0)) / COALESCE(p.previous_week_ads, 0), 2)
+    WHEN COALESCE(c.current_week_ads, 0) > 0 THEN 100.0
+    ELSE 0
+  END AS ads_change_pct
+FROM current_summary c
+FULL OUTER JOIN prev_summary p
+  ON c.site_focus = p.site_focus
+ AND c.category = p.category
+WHERE COALESCE(c.site_focus, p.site_focus) IN ${inputs.site_focus_filter.value}
+ORDER BY ads_change DESC, ads_change_pct DESC, category
+```
+
 ```phone_focus_totals
 WITH target AS (
   SELECT MAX(hub_partition_date) AS d
@@ -324,6 +479,36 @@ ORDER BY 1, 2
   <KpiCard label="Focus Unique Phones" value={phone_focus_kpis[0]?.total_unique_phones?.toLocaleString()} tone="good" />
   <KpiCard label="Focus Unique Ads" value={phone_focus_kpis[0]?.total_unique_ads?.toLocaleString()} tone="primary" />
   <KpiCard label="Focused Websites" value={phone_focus_kpis[0]?.websites_in_focus} tone="neutral" />
+</div>
+
+<div class="kpi-row cols-3 mt-4">
+  <KpiCard
+    label="Weekly ad change"
+    value={weekly_ad_change_summary[0]?.ads_change_pct != null ? `${weekly_ad_change_summary[0].ads_change_pct > 0 ? '+' : ''}${weekly_ad_change_summary[0].ads_change_pct.toFixed(1)}%` : '—'}
+    tone={weekly_ad_change_summary[0]?.ads_change_pct > 0 ? 'good' : weekly_ad_change_summary[0]?.ads_change_pct < 0 ? 'bad' : 'neutral'}
+  />
+  <KpiCard label="This week ads" value={weekly_ad_change_summary[0]?.current_week_ads?.toLocaleString() ?? '—'} tone="primary" />
+  <KpiCard label="Last week ads" value={weekly_ad_change_summary[0]?.previous_week_ads?.toLocaleString() ?? '—'} tone="neutral" />
+</div>
+
+<div class="stat-line mt-4">
+  Categories with positive week-over-week growth show which segments are driving the increase.
+</div>
+
+<div class="dash-table-wrap mt-3">
+  <DataTable
+    data={weekly_ad_change.filter(d => d.ads_change > 0)}
+    search=true
+    rows=all
+    emptySet=pass
+    emptyMessage="No category growth was detected versus the previous week."
+  >
+    <Column id=category title="Category" />
+    <Column id=current_week_ads title="This week" fmt=num0 />
+    <Column id=previous_week_ads title="Last week" fmt=num0 />
+    <Column id=ads_change title="Δ ads" fmt=num0 contentType=delta />
+    <Column id=ads_change_pct title="Δ %" fmt=pct1 contentType=delta />
+  </DataTable>
 </div>
 
 <div class="chart-row mt-4">
