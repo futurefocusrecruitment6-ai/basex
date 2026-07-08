@@ -203,11 +203,39 @@ ORDER BY unique_phones DESC, unique_ads DESC
 ```
 
 ```phone_focus_kpis
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scraper_phone AS (
+  SELECT
+    hub_partition_date,
+    site_id,
+    COALESCE(SUM(unique_phones), 0) AS scraper_unique_phones
+  FROM motherduck.scraper_daily
+  GROUP BY 1, 2
+), scoped AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    GREATEST(COALESCE(s.unique_phones, 0), COALESCE(sp.scraper_unique_phones, 0)) AS unique_phones,
+    COALESCE(s.unique_ads, 0) AS unique_ads
+  FROM motherduck.site_daily s
+  LEFT JOIN scraper_phone sp
+    ON sp.hub_partition_date = s.hub_partition_date
+   AND sp.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE s.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+)
 SELECT
   COALESCE(SUM(unique_phones), 0) AS total_unique_phones,
   COALESCE(SUM(unique_ads), 0) AS total_unique_ads,
   COUNT(*) AS websites_in_focus
-FROM phone_focus_totals
+FROM scoped
+WHERE site_focus IN ${inputs.site_focus_filter.value}
 ```
 
 ```phone_focus_daily
