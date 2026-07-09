@@ -116,6 +116,74 @@ GROUP BY 1, 2
 ORDER BY site_focus, unique_ads DESC, category
 ```
 
+```ads_peak_hour_by_category_focus
+WITH target AS (
+  SELECT MAX(hub_partition_date) AS d
+  FROM motherduck.hub_daily
+  WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
+), scoped AS (
+  SELECT
+    CASE
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+    END AS site_focus,
+    REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    COALESCE(hr.ads_count, 0) AS ads_count,
+    hr.hour
+  FROM motherduck.scraper_hourly_daily hr
+  JOIN motherduck.scraper_daily sc
+    ON hr.hub_partition_date = sc.hub_partition_date
+   AND hr.site_id = sc.site_id
+   AND hr.scraper = sc.scraper
+  JOIN motherduck.site_daily s
+    ON sc.hub_partition_date = s.hub_partition_date
+   AND sc.site_id = s.site_id
+  CROSS JOIN target t
+  WHERE hr.hub_partition_date = t.d
+    AND s.country IN ${inputs.country_filter.value}
+), normalized AS (
+  SELECT
+    site_focus,
+    COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+    hour,
+    ads_count
+  FROM scoped
+  WHERE site_focus IS NOT NULL
+), category_hour_totals AS (
+  SELECT
+    site_focus,
+    category,
+    hour,
+    SUM(ads_count) AS ads_count
+  FROM normalized
+  WHERE site_focus IN ${inputs.site_focus_filter.value}
+  GROUP BY 1, 2, 3
+), category_peak AS (
+  SELECT
+    site_focus,
+    category,
+    hour AS peak_hour,
+    ads_count AS peak_ads
+  FROM (
+    SELECT
+      site_focus,
+      category,
+      hour,
+      ads_count,
+      ROW_NUMBER() OVER (PARTITION BY site_focus, category ORDER BY ads_count DESC, hour ASC) AS rn
+    FROM category_hour_totals
+  ) t
+  WHERE rn = 1
+)
+SELECT
+  site_focus,
+  category,
+  peak_hour,
+  peak_ads
+FROM category_peak
+ORDER BY site_focus, category
+```
+
 ```ads_by_subcategory_focus
 WITH target AS (
   SELECT MAX(hub_partition_date) AS d
@@ -382,6 +450,35 @@ ORDER BY 1, 2
   </div>
 </div>
 
+<div class="chart-row mt-4">
+  <div class="chart-panel">
+  <BarChart
+    data={ads_peak_hour_by_category_focus}
+    x=category
+    y=peak_ads
+    series=site_focus
+    title="Category peak hour (ads)"
+    yFmt=num0
+    swapXY=true
+    chartAreaHeight=260
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+  <div class="dash-table-wrap">
+  <DataTable
+    data={ads_peak_hour_by_category_focus}
+    rows=all
+    emptySet=pass
+    emptyMessage="No peak hour data for the selected filters."
+  >
+    <Column id=site_focus title="Website" />
+    <Column id=category title="Category" />
+    <Column id=peak_hour title="Peak hour" fmt=num0 />
+    <Column id=peak_ads title="Ads at peak" fmt=num0 />
+  </DataTable>
+  </div>
+</div>
+
 <div class="dash-table-wrap mt-4">
 <DataTable
   data={ads_by_category_focus}
@@ -398,7 +495,7 @@ ORDER BY 1, 2
 </div>
 
 <div class="stat-line mt-4">
-  Category, subcategory, and brand-level drill-down are parsed from scraper names (for example: Used Car / Toyota / Corolla) for the selected run.
+  Category peak hour is derived from listing <code>date_published</code> hour counts in the latest run. Ties are broken by earliest hour.
 </div>
 
 <div class="space-y-3 mt-3">
