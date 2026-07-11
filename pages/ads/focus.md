@@ -88,29 +88,22 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    TRIM(COALESCE(sc.scraper, '')) AS scraper_name,
-    COALESCE(sc.unique_ads, 0) AS unique_ads
-  FROM motherduck.scraper_daily sc
+    TRIM(COALESCE(scd.scraper, '')) AS category,
+    COALESCE(scd.ads_count, 0) AS unique_ads
+  FROM motherduck.scraper_subcategory_daily scd
   JOIN motherduck.site_daily s
-    ON sc.hub_partition_date = s.hub_partition_date
-   AND sc.site_id = s.site_id
+    ON scd.hub_partition_date = s.hub_partition_date
+   AND scd.site_id = s.site_id
   CROSS JOIN target t
-  WHERE sc.hub_partition_date = t.d
+  WHERE scd.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
-), normalized AS (
-  SELECT
-    site_focus,
-    REPLACE(REPLACE(REPLACE(REPLACE(scraper_name, ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
-    unique_ads
-  FROM scoped
-  WHERE site_focus IS NOT NULL
 )
 SELECT
   site_focus,
-  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
+  COALESCE(NULLIF(category, ''), '(uncategorized)') AS category,
   SUM(unique_ads) AS unique_ads,
   COUNT(*) AS scrapers_count
-FROM normalized
+FROM scoped
 WHERE site_focus IN ${inputs.site_focus_filter.value}
 GROUP BY 1, 2
 ORDER BY site_focus, unique_ads DESC, category
@@ -189,17 +182,17 @@ WITH target AS (
   SELECT MAX(hub_partition_date) AS d
   FROM motherduck.hub_daily
   WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
-), scd_rows AS (
+), scoped AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
+    TRIM(COALESCE(scd.scraper, '')) AS category,
     COALESCE(scd.ads_count, 0) AS unique_ads,
     COALESCE(scd.sheet_rows, 0) AS total_rows,
-    COALESCE(scd.subcategory, '') AS subcategory,
-    COALESCE(scd.level_3, '') AS level_3
+    COALESCE(scd.sheets_count, 0) AS sheets_count,
+    COALESCE(scd.subcategory, '') AS subcategory
   FROM motherduck.scraper_subcategory_daily scd
   JOIN motherduck.site_daily s
     ON scd.hub_partition_date = s.hub_partition_date
@@ -207,43 +200,16 @@ WITH target AS (
   CROSS JOIN target t
   WHERE scd.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
-), sc_rows AS (
-  SELECT
-    CASE
-      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
-    END AS site_focus,
-    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
-    COALESCE(sc.unique_ads, 0) AS unique_ads,
-    COALESCE(sc.total_rows, 0) AS total_rows,
-    COALESCE(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 2), ''), '') AS subcategory,
-    COALESCE(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 3), ''), '') AS level_3
-  FROM motherduck.scraper_daily sc
-  JOIN motherduck.site_daily s
-    ON sc.hub_partition_date = s.hub_partition_date
-   AND sc.site_id = s.site_id
-  LEFT JOIN motherduck.scraper_subcategory_daily scd
-    ON scd.hub_partition_date = sc.hub_partition_date
-   AND scd.site_id = sc.site_id
-   AND lower(TRIM(COALESCE(scd.scraper, ''))) = lower(TRIM(COALESCE(sc.scraper, '')))
-  CROSS JOIN target t
-  WHERE sc.hub_partition_date = t.d
-    AND s.country IN ${inputs.country_filter.value}
-    AND scd.scraper IS NULL
-), combined AS (
-  SELECT site_focus, scraper_path, unique_ads, total_rows, subcategory, level_3 FROM scd_rows
-  UNION ALL
-  SELECT site_focus, scraper_path, unique_ads, total_rows, subcategory, level_3 FROM sc_rows
 )
 SELECT
   site_focus,
-  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
-  COALESCE(NULLIF(subcategory, ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)')) AS subcategory,
+  COALESCE(NULLIF(category, ''), '(uncategorized)') AS category,
+  COALESCE(NULLIF(subcategory, ''), '(no subcategory)') AS subcategory,
   SUM(unique_ads) AS unique_ads,
   SUM(total_rows) AS sheet_rows,
-  COUNT(*) AS sheets_count,
+  SUM(sheets_count) AS sheets_count,
   COUNT(*) AS hierarchy_rows
-FROM combined scoped
+FROM scoped
 WHERE site_focus IN ${inputs.site_focus_filter.value}
 GROUP BY 1, 2, 3
 ORDER BY site_focus, category, unique_ads DESC, subcategory
@@ -254,15 +220,16 @@ WITH target AS (
   SELECT MAX(hub_partition_date) AS d
   FROM motherduck.hub_daily
   WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
-), scd_rows AS (
+), scoped AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
+    TRIM(COALESCE(scd.scraper, '')) AS category,
     COALESCE(scd.ads_count, 0) AS unique_ads,
     COALESCE(scd.sheet_rows, 0) AS total_rows,
+    COALESCE(scd.sheets_count, 0) AS sheets_count,
     COALESCE(scd.subcategory, '') AS subcategory,
     COALESCE(scd.level_3, '') AS level_3
   FROM motherduck.scraper_subcategory_daily scd
@@ -272,46 +239,19 @@ WITH target AS (
   CROSS JOIN target t
   WHERE scd.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
-), sc_rows AS (
-  SELECT
-    CASE
-      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
-    END AS site_focus,
-    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
-    COALESCE(sc.unique_ads, 0) AS unique_ads,
-    COALESCE(sc.total_rows, 0) AS total_rows,
-    COALESCE(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 2), ''), '') AS subcategory,
-    COALESCE(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 3), ''), '') AS level_3
-  FROM motherduck.scraper_daily sc
-  JOIN motherduck.site_daily s
-    ON sc.hub_partition_date = s.hub_partition_date
-   AND sc.site_id = s.site_id
-  LEFT JOIN motherduck.scraper_subcategory_daily scd
-    ON scd.hub_partition_date = sc.hub_partition_date
-   AND scd.site_id = sc.site_id
-   AND lower(TRIM(COALESCE(scd.scraper, ''))) = lower(TRIM(COALESCE(sc.scraper, '')))
-  CROSS JOIN target t
-  WHERE sc.hub_partition_date = t.d
-    AND s.country IN ${inputs.country_filter.value}
-    AND scd.scraper IS NULL
-), combined AS (
-  SELECT site_focus, scraper_path, unique_ads, total_rows, subcategory, level_3 FROM scd_rows
-  UNION ALL
-  SELECT site_focus, scraper_path, unique_ads, total_rows, subcategory, level_3 FROM sc_rows
 )
 SELECT
   site_focus,
-  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
-  COALESCE(NULLIF(subcategory, ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)')) AS subcategory,
-  COALESCE(NULLIF(level_3, ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '(leaf)')) AS level_3,
+  COALESCE(NULLIF(category, ''), '(uncategorized)') AS category,
+  COALESCE(NULLIF(subcategory, ''), '(no subcategory)') AS subcategory,
+  COALESCE(NULLIF(level_3, ''), '(leaf)') AS level_3,
   SUM(unique_ads) AS unique_ads,
   SUM(total_rows) AS sheet_rows,
-  COUNT(*) AS sheets_count,
+  SUM(sheets_count) AS sheets_count,
   COUNT(*) AS hierarchy_rows
-FROM combined scoped
+FROM scoped
 WHERE site_focus IN ${inputs.site_focus_filter.value}
-  AND COALESCE(NULLIF(level_3, ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '')) <> ''
+  AND COALESCE(NULLIF(level_3, ''), '') <> ''
 GROUP BY 1, 2, 3, 4
 ORDER BY site_focus, category, subcategory, unique_ads DESC, level_3
 ```
