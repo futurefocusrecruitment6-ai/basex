@@ -90,7 +90,7 @@ WITH target AS (
     END AS site_focus,
     TRIM(COALESCE(scd.scraper, '')) AS category,
     COALESCE(scd.ads_count, 0) AS unique_ads
-  FROM scraper_subcategory_daily scd
+  FROM motherduck.scraper_subcategory_daily scd
   JOIN motherduck.site_daily s
     ON scd.hub_partition_date = s.hub_partition_date
    AND scd.site_id = s.site_id
@@ -193,7 +193,7 @@ WITH target AS (
     COALESCE(scd.sheet_rows, 0) AS total_rows,
     COALESCE(scd.sheets_count, 0) AS sheets_count,
     COALESCE(scd.subcategory, '') AS subcategory
-  FROM scraper_subcategory_daily scd
+  FROM motherduck.scraper_subcategory_daily scd
   JOIN motherduck.site_daily s
     ON scd.hub_partition_date = s.hub_partition_date
    AND scd.site_id = s.site_id
@@ -232,7 +232,7 @@ WITH target AS (
     COALESCE(scd.sheets_count, 0) AS sheets_count,
     COALESCE(scd.subcategory, '') AS subcategory,
     COALESCE(scd.level_3, '') AS level_3
-  FROM scraper_subcategory_daily scd
+  FROM motherduck.scraper_subcategory_daily scd
   JOIN motherduck.site_daily s
     ON scd.hub_partition_date = s.hub_partition_date
    AND scd.site_id = s.site_id
