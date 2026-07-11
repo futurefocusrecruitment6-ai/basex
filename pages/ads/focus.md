@@ -151,30 +151,29 @@ WITH target AS (
   FROM normalized
   WHERE site_focus IN ${inputs.site_focus_filter.value}
   GROUP BY 1, 2, 3
-), category_peak AS (
+), category_periods AS (
   SELECT
     site_focus,
     category,
-    hour AS peak_hour,
-    ads_count AS peak_ads
-  FROM (
-    SELECT
-      site_focus,
-      category,
-      hour,
-      ads_count,
-      ROW_NUMBER() OVER (PARTITION BY site_focus, category ORDER BY ads_count DESC, hour ASC) AS rn
-    FROM category_hour_totals
-  ) t
-  WHERE rn = 1
+    CASE
+      WHEN hour BETWEEN 0 AND 3 THEN '00-04 (12am-4am)'
+      WHEN hour BETWEEN 4 AND 7 THEN '04-08 (4am-8am)'
+      WHEN hour BETWEEN 8 AND 11 THEN '08-12 (8am-12pm)'
+      WHEN hour BETWEEN 12 AND 15 THEN '12-16 (12pm-4pm)'
+      WHEN hour BETWEEN 16 AND 19 THEN '16-20 (4pm-8pm)'
+      WHEN hour BETWEEN 20 AND 23 THEN '20-24 (8pm-12am)'
+    END AS period,
+    SUM(ads_count) AS total_ads
+  FROM category_hour_totals
+  GROUP BY 1, 2, 3
 )
 SELECT
   site_focus,
   category,
-  peak_hour,
-  peak_ads
-FROM category_peak
-ORDER BY site_focus, category
+  period,
+  total_ads
+FROM category_periods
+ORDER BY site_focus, category, period
 ```
 
 ```ads_by_subcategory_focus
@@ -638,12 +637,12 @@ ORDER BY 1, 2
   <BarChart
     data={ads_peak_hour_by_category_focus}
     x=category
-    y=peak_ads
-    series=site_focus
-    title="Category peak hour (ads)"
+    y=total_ads
+    series=period
+    title="Ads by category and time period"
     yFmt=num0
     swapXY=true
-    chartAreaHeight=260
+    chartAreaHeight=400
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
   </div>
@@ -652,12 +651,12 @@ ORDER BY 1, 2
     data={ads_peak_hour_by_category_focus}
     rows=all
     emptySet=pass
-    emptyMessage="No peak hour data for the selected filters."
+    emptyMessage="No data for the selected filters."
   >
     <Column id=site_focus title="Website" />
     <Column id=category title="Category" />
-    <Column id=peak_hour title="Peak hour" fmt=num0 />
-    <Column id=peak_ads title="Ads at peak" fmt=num0 />
+    <Column id=period title="Time Period" />
+    <Column id=total_ads title="Total Ads" fmt=num0 />
   </DataTable>
   </div>
 </div>
