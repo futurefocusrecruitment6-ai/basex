@@ -192,27 +192,18 @@ WITH target AS (
 ), scoped AS (
   SELECT
     CASE
-      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
-    COALESCE(sc.unique_ads, 0) AS unique_ads,
-    COALESCE(sc.total_rows, 0) AS total_rows
-  FROM motherduck.scraper_daily sc
+    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
+    COALESCE(scd.ads_count, 0) AS unique_ads,
+    COALESCE(scd.sheet_rows, 0) AS total_rows
+  FROM motherduck.scraper_subcategory_daily scd
   JOIN motherduck.site_daily s
-    ON sc.hub_partition_date = s.hub_partition_date
-   AND sc.site_id = s.site_id
-  LEFT JOIN motherduck.scraper_subcategory_daily scd
-    ON scd.hub_partition_date = sc.hub_partition_date
-   AND scd.site_id = sc.site_id
-   AND (
-     lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
-     = lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
-     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 1), ''))
-     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 2), ''))
-   )
+    ON scd.hub_partition_date = s.hub_partition_date
+   AND scd.site_id = s.site_id
   CROSS JOIN target t
-  WHERE sc.hub_partition_date = t.d
+  WHERE scd.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
 )
 SELECT
@@ -237,27 +228,18 @@ WITH target AS (
 ), scoped AS (
   SELECT
     CASE
-      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\s*sale|4sale') THEN '4sale'
       WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
     END AS site_focus,
-    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
-    COALESCE(sc.unique_ads, 0) AS unique_ads,
-    COALESCE(sc.total_rows, 0) AS total_rows
-  FROM motherduck.scraper_daily sc
+    REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/') AS scraper_path,
+    COALESCE(scd.ads_count, 0) AS unique_ads,
+    COALESCE(scd.sheet_rows, 0) AS total_rows
+  FROM motherduck.scraper_subcategory_daily scd
   JOIN motherduck.site_daily s
-    ON sc.hub_partition_date = s.hub_partition_date
-   AND sc.site_id = s.site_id
-  LEFT JOIN motherduck.scraper_subcategory_daily scd
-    ON scd.hub_partition_date = sc.hub_partition_date
-   AND scd.site_id = sc.site_id
-   AND (
-     lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
-     = lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
-     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 1), ''))
-     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 2), ''))
-   )
+    ON scd.hub_partition_date = s.hub_partition_date
+   AND scd.site_id = s.site_id
   CROSS JOIN target t
-  WHERE sc.hub_partition_date = t.d
+  WHERE scd.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
 )
 SELECT
@@ -271,7 +253,7 @@ SELECT
   COUNT(*) AS hierarchy_rows
 FROM scoped
 WHERE site_focus IN ${inputs.site_focus_filter.value}
-  AND COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '') <> ''
+  AND COALESCE(NULLIF(COALESCE(scd.level_3, ''), ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '')) <> ''
 GROUP BY 1, 2, 3, 4
 ORDER BY site_focus, category, subcategory, unique_ads DESC, level_3
 ```
