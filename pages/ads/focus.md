@@ -205,7 +205,12 @@ WITH target AS (
   LEFT JOIN motherduck.scraper_subcategory_daily scd
     ON scd.hub_partition_date = sc.hub_partition_date
    AND scd.site_id = sc.site_id
-   AND scd.scraper = sc.scraper
+   AND (
+     lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
+     = lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
+     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 1), ''))
+     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 2), ''))
+   )
   CROSS JOIN target t
   WHERE sc.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
@@ -245,7 +250,12 @@ WITH target AS (
   LEFT JOIN motherduck.scraper_subcategory_daily scd
     ON scd.hub_partition_date = sc.hub_partition_date
    AND scd.site_id = sc.site_id
-   AND scd.scraper = sc.scraper
+   AND (
+     lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(scd.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
+     = lower(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'))
+     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 1), ''))
+     OR lower(TRIM(COALESCE(scd.scraper, ''))) = lower(NULLIF(SPLIT_PART(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/'), ' / ', '/'), '/', 2), ''))
+   )
   CROSS JOIN target t
   WHERE sc.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
