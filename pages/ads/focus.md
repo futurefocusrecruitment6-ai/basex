@@ -202,6 +202,10 @@ WITH target AS (
   JOIN motherduck.site_daily s
     ON sc.hub_partition_date = s.hub_partition_date
    AND sc.site_id = s.site_id
+  LEFT JOIN motherduck.scraper_subcategory_daily scd
+    ON scd.hub_partition_date = sc.hub_partition_date
+   AND scd.site_id = sc.site_id
+   AND scd.scraper = sc.scraper
   CROSS JOIN target t
   WHERE sc.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
@@ -209,7 +213,7 @@ WITH target AS (
 SELECT
   site_focus,
   COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
-  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)') AS subcategory,
+  COALESCE(NULLIF(scd.subcategory, ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)')) AS subcategory,
   SUM(unique_ads) AS unique_ads,
   SUM(total_rows) AS sheet_rows,
   COUNT(*) AS sheets_count,
@@ -238,6 +242,10 @@ WITH target AS (
   JOIN motherduck.site_daily s
     ON sc.hub_partition_date = s.hub_partition_date
    AND sc.site_id = s.site_id
+  LEFT JOIN motherduck.scraper_subcategory_daily scd
+    ON scd.hub_partition_date = sc.hub_partition_date
+   AND scd.site_id = sc.site_id
+   AND scd.scraper = sc.scraper
   CROSS JOIN target t
   WHERE sc.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
@@ -245,8 +253,8 @@ WITH target AS (
 SELECT
   site_focus,
   COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 1), ''), '(uncategorized)') AS category,
-  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)') AS subcategory,
-  COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '(leaf)') AS level_3,
+  COALESCE(NULLIF(scd.subcategory, ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 2), ''), '(no subcategory)')) AS subcategory,
+  COALESCE(NULLIF(scd.level_3, ''), COALESCE(NULLIF(SPLIT_PART(scraper_path, '/', 3), ''), '(leaf)')) AS level_3,
   SUM(unique_ads) AS unique_ads,
   SUM(total_rows) AS sheet_rows,
   COUNT(*) AS sheets_count,
