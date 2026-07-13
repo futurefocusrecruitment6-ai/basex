@@ -52,7 +52,6 @@ SELECT
   h.sites_ok,
   h.total_alerts
 FROM motherduck.hub_daily h
-WHERE h.hub_partition_date >= CURRENT_DATE - INTERVAL '60' DAY
 ORDER BY h.hub_partition_date
 ```
 
@@ -258,7 +257,7 @@ ORDER BY site_focus, category, unique_ads DESC, subcategory, level_3
     data={ads_trend}
     x=hub_partition_date
     y=total_unique_ads
-    title="Hub total — 60 day trend"
+    title="Hub total — all history"
     yAxisTitle="Unique listings"
     yFmt=num0
     chartAreaHeight=240

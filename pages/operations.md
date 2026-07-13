@@ -70,8 +70,7 @@ SELECT
   h.total_requests,
   h.total_requests_failed
 FROM motherduck.hub_daily h
-WHERE h.hub_partition_date >= CURRENT_DATE - INTERVAL '60' DAY
-  AND h.avg_requests_per_min IS NOT NULL
+WHERE h.avg_requests_per_min IS NOT NULL
 ORDER BY h.hub_partition_date
 ```
 
@@ -233,7 +232,7 @@ ORDER BY s.display_name, sc.scraper
     data={ops_trend}
     x=hub_partition_date
     y=avg_requests_per_min
-    title="Hub avg req/min — 60 day history"
+    title="Hub avg req/min — all history"
     yAxisTitle="Requests / min"
     yFmt=num1
     chartAreaHeight=240
@@ -245,7 +244,7 @@ ORDER BY s.display_name, sc.scraper
     data={ops_trend}
     x=hub_partition_date
     y=avg_error_rate_pct
-    title="Hub HTTP error rate — 60 day history"
+    title="Hub HTTP error rate — all history"
     yAxisTitle="Error rate %"
     yFmt=num2
     chartAreaHeight=240

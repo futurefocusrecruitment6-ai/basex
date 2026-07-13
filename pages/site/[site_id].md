@@ -143,7 +143,6 @@ SELECT
 FROM motherduck.site_daily s
 WHERE s.site_id = '${params.site_id}'
 ORDER BY s.hub_partition_date DESC
-LIMIT 30
 ```
 
 ```site_http_history
@@ -160,7 +159,6 @@ SELECT
 FROM motherduck.site_daily s
 WHERE s.site_id = '${params.site_id}'
 ORDER BY s.hub_partition_date DESC
-LIMIT 30
 ```
 
 <div class="site-header">
@@ -242,7 +240,7 @@ LIMIT 30
     data={site_history}
     x=hub_partition_date
     y=unique_ads
-    title="Unique ads — 30 runs"
+    title="Unique ads — all history"
     yAxisTitle="Listings"
     yFmt=num0
     chartAreaHeight=220
@@ -254,7 +252,7 @@ LIMIT 30
     data={site_history}
     x=hub_partition_date
     y=alert_count
-    title="Alerts — 30 runs"
+    title="Alerts — all history"
     yAxisTitle="Alerts"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
@@ -268,7 +266,7 @@ LIMIT 30
     data={site_history}
     x=hub_partition_date
     y=r2_file_count
-    title="R2 files — 30 runs"
+    title="R2 files — all history"
     yAxisTitle="Objects"
     yFmt=num0
     chartAreaHeight=200
@@ -280,7 +278,7 @@ LIMIT 30
     data={site_history}
     x=hub_partition_date
     y=scrapers_passed
-    title="Scrapers passed — 30 runs"
+    title="Scrapers passed — all history"
     yAxisTitle="Count"
     chartAreaHeight=200
     echartsOptions={{ backgroundColor: 'transparent' }}
@@ -294,7 +292,7 @@ LIMIT 30
     data={site_http_history}
     x=hub_partition_date
     y=requests_per_min
-    title="Request rate — 30 runs"
+    title="Request rate — all history"
     yAxisTitle="Req/min"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
@@ -305,7 +303,7 @@ LIMIT 30
     data={site_http_history}
     x=hub_partition_date
     y=error_rate_pct
-    title="Error rate — 30 runs"
+    title="Error rate — all history"
     yAxisTitle="Error %"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}

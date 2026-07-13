@@ -511,8 +511,7 @@ WITH scraper_phone AS (
   LEFT JOIN scraper_phone sp
     ON sp.hub_partition_date = s.hub_partition_date
    AND sp.site_id = s.site_id
-  WHERE s.hub_partition_date >= CURRENT_DATE - INTERVAL '60' DAY
-    AND s.country IN ${inputs.country_filter.value}
+  WHERE s.country IN ${inputs.country_filter.value}
 )
 SELECT
   hub_partition_date,

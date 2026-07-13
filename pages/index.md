@@ -135,7 +135,6 @@ SELECT
   COALESCE(SUM(s.r2_file_count), 0) AS total_r2_files
 FROM motherduck.site_daily s
 INNER JOIN site_scope ss ON s.site_id = ss.site_id
-WHERE s.hub_partition_date >= (SELECT d FROM target) - INTERVAL '30' DAY
 GROUP BY 1
 ORDER BY 1
 ```
@@ -172,7 +171,6 @@ SELECT
 FROM motherduck.site_daily s
 INNER JOIN site_scope ss ON ss.site_id = s.site_id
 CROSS JOIN target t
-WHERE s.hub_partition_date >= t.d - INTERVAL '30' DAY
 GROUP BY 1
 ORDER BY 1
 ```
@@ -264,7 +262,7 @@ ORDER BY
     data={alert_trend}
     x=hub_partition_date
     y=total_alerts
-    title="Alerts — 30 day"
+    title="Alerts — all history"
     yAxisTitle="Alerts"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
@@ -275,7 +273,7 @@ ORDER BY
     data={alert_trend}
     x=hub_partition_date
     y=total_unique_ads
-    title="Unique ads — 30 day"
+    title="Unique ads — all history"
     yAxisTitle="Listings"
     yFmt=num0
     chartAreaHeight=220
@@ -290,7 +288,7 @@ ORDER BY
     data={alert_trend}
     x=hub_partition_date
     y=sites_ok
-    title="Healthy sites — 30 day"
+    title="Healthy sites — all history"
     yAxisTitle="Sites OK"
     chartAreaHeight=200
     echartsOptions={{ backgroundColor: 'transparent' }}
@@ -304,7 +302,7 @@ ORDER BY
     data={http_trend}
     x=hub_partition_date
     y=requests_per_min
-    title="Request rate — 30 day"
+    title="Request rate — all history"
     yAxisTitle="Req/min"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
@@ -315,7 +313,7 @@ ORDER BY
     data={http_trend}
     x=hub_partition_date
     y=error_rate_pct
-    title="Error rate — 30 day"
+    title="Error rate — all history"
     yAxisTitle="Error %"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
