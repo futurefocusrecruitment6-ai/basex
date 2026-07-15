@@ -1,6 +1,6 @@
 ---
 title: Website focus drill-down
-description: Focused listing and phone volume for 4sale and boshmalan, with category and subcategory drill-down.
+description: Focused listing and phone volume for 4sale and boshamlan, with category and subcategory drill-down.
 ---
 
 <DashNav active="ads" />
@@ -29,14 +29,11 @@ WITH target AS (
   SELECT DISTINCT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus
-  FROM motherduck.scraper_daily sc
-  JOIN motherduck.site_daily s
-    ON sc.hub_partition_date = s.hub_partition_date
-   AND sc.site_id = s.site_id
+  FROM motherduck.site_daily s
   CROSS JOIN target t
-  WHERE sc.hub_partition_date = t.d
+  WHERE s.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
 )
 SELECT site_focus
@@ -56,7 +53,7 @@ WITH target AS (
     s.inspect_date,
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     COALESCE(sc.unique_ads, 0) AS unique_ads
   FROM motherduck.scraper_daily sc
@@ -86,7 +83,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     TRIM(COALESCE(scd.scraper, '')) AS category,
     COALESCE(scd.ads_count, 0) AS unique_ads
@@ -118,7 +115,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
     COALESCE(hr.ads_count, 0) AS ads_count,
@@ -185,7 +182,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     TRIM(COALESCE(scd.scraper, '')) AS category,
     COALESCE(scd.ads_count, 0) AS unique_ads,
@@ -223,7 +220,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     TRIM(COALESCE(scd.scraper, '')) AS category,
     COALESCE(scd.ads_count, 0) AS unique_ads,
@@ -270,7 +267,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     COALESCE(sc.unique_ads, 0) AS unique_ads
   FROM motherduck.scraper_daily sc
@@ -284,7 +281,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     COALESCE(sc.unique_ads, 0) AS unique_ads
   FROM motherduck.scraper_daily sc
@@ -336,7 +333,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     TRIM(COALESCE(sc.scraper, '')) AS scraper_name,
     COALESCE(sc.unique_ads, 0) AS unique_ads
@@ -351,7 +348,7 @@ WITH target AS (
   SELECT
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     TRIM(COALESCE(sc.scraper, '')) AS scraper_name,
     COALESCE(sc.unique_ads, 0) AS unique_ads
@@ -428,7 +425,7 @@ WITH target AS (
     s.inspect_date,
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     GREATEST(COALESCE(s.unique_phones, 0), COALESCE(sp.scraper_unique_phones, 0)) AS unique_phones,
     COALESCE(s.unique_ads, 0) AS unique_ads
@@ -469,7 +466,7 @@ WITH target AS (
     s.inspect_date,
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     GREATEST(COALESCE(s.unique_phones, 0), COALESCE(sp.scraper_unique_phones, 0)) AS unique_phones,
     COALESCE(s.unique_ads, 0) AS unique_ads
@@ -504,7 +501,7 @@ WITH scraper_phone AS (
     s.hub_partition_date,
     CASE
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')) LIKE '%boshmalan%' THEN 'boshmalan'
+      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     GREATEST(COALESCE(s.unique_phones, 0), COALESCE(sp.scraper_unique_phones, 0)) AS unique_phones
   FROM motherduck.site_daily s
@@ -582,7 +579,7 @@ ORDER BY 1, 2
     x=hub_partition_date
     y=unique_phones
     series=site_focus
-    title="Daily unique phones (4sale / boshmalan)"
+    title="Daily unique phones (4sale / boshamlan)"
     yFmt=num0
     chartAreaHeight=260
     echartsOptions={{ backgroundColor: 'transparent' }}
@@ -622,7 +619,7 @@ ORDER BY 1, 2
     data={ads_hierarchy_totals}
     rows=all
     emptySet=pass
-    emptyMessage="No 4sale or boshmalan rows for the selected filters."
+    emptyMessage="No 4sale or boshamlan rows for the selected filters."
   >
     <Column id=site_focus title="Website" />
     <Column id=unique_ads title="Unique ads" fmt=num0 />
