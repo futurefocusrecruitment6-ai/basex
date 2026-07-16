@@ -114,19 +114,32 @@ WITH target AS (
 ), scoped AS (
   SELECT
     CASE
-      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
-      WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
+      WHEN REGEXP_MATCHES(LOWER(
+        COALESCE(s.site_id, hr.site_id, '') || ' ' ||
+        COALESCE(s.display_name, '') || ' ' ||
+        COALESCE(s.website, '') || ' ' ||
+        COALESCE(hr.scraper, '')
+      ), '4\\s*sale|4sale') THEN '4sale'
+      WHEN REGEXP_MATCHES(LOWER(
+        COALESCE(s.site_id, hr.site_id, '') || ' ' ||
+        COALESCE(s.display_name, '') || ' ' ||
+        COALESCE(s.website, '') || ' ' ||
+        COALESCE(hr.scraper, '')
+      ), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     REPLACE(REPLACE(REPLACE(TRIM(COALESCE(hr.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
     COALESCE(hr.ads_count, 0) AS ads_count,
     hr.hour
   FROM motherduck.scraper_hourly_daily hr
-  JOIN motherduck.site_daily s
+  LEFT JOIN motherduck.site_daily s
     ON hr.hub_partition_date = s.hub_partition_date
    AND hr.site_id = s.site_id
   CROSS JOIN target t
   WHERE hr.hub_partition_date = t.d
-    AND s.country IN ${inputs.country_filter.value}
+    AND (
+      s.country IN ${inputs.country_filter.value}
+      OR s.site_id IS NULL
+    )
 ), normalized AS (
   SELECT
     site_focus,
