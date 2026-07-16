@@ -117,17 +117,13 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), '4\\s*sale|4sale') THEN '4sale'
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
-    REPLACE(REPLACE(REPLACE(TRIM(COALESCE(sc.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
+    REPLACE(REPLACE(REPLACE(TRIM(COALESCE(hr.scraper, '')), ' > ', '/'), '::', '/'), ' - ', '/') AS scraper_path,
     COALESCE(hr.ads_count, 0) AS ads_count,
     hr.hour
   FROM motherduck.scraper_hourly_daily hr
-  JOIN motherduck.scraper_daily sc
-    ON hr.hub_partition_date = sc.hub_partition_date
-   AND hr.site_id = sc.site_id
-   AND hr.scraper = sc.scraper
   JOIN motherduck.site_daily s
-    ON sc.hub_partition_date = s.hub_partition_date
-   AND sc.site_id = s.site_id
+    ON hr.hub_partition_date = s.hub_partition_date
+   AND hr.site_id = s.site_id
   CROSS JOIN target t
   WHERE hr.hub_partition_date = t.d
     AND s.country IN ${inputs.country_filter.value}
