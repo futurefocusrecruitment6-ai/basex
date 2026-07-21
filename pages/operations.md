@@ -212,7 +212,9 @@ ORDER BY s.display_name, sc.scraper
 </div>
 
 <div class="kpi-row cols-4">
-  <KpiCard label="Avg req/min (hub)" value={ops_kpis[0].avg_requests_per_min?.toFixed(1) ?? '—'} tone="primary" />
+  <a href="#by-site-section" class="no-underline block">
+    <KpiCard label="Avg req/min (hub, click for sites)" value={ops_kpis[0].avg_requests_per_min?.toFixed(1) ?? '—'} tone="primary" />
+  </a>
   <KpiCard
     label="Req/min vs yesterday"
     value={ops_kpis[0].rpm_change_pct != null ? `${ops_kpis[0].rpm_change_pct > 0 ? '+' : ''}${ops_kpis[0].rpm_change_pct}%` : '—'}
@@ -258,13 +260,14 @@ ORDER BY s.display_name, sc.scraper
 
 <Tab label="By website" id="by-site">
 
-<div class="stat-line">
-  <strong>{ops_by_site.length}</strong> websites · sorted by req/min descending
-</div>
+<div id="by-site-section">
+  <div class="stat-line">
+    <strong>{ops_by_site.length}</strong> websites · sorted by req/min descending
+  </div>
 
-<div class="dash-table-wrap">
-<DataTable
-  data={ops_by_site}
+  <div class="dash-table-wrap">
+  <DataTable
+    data={ops_by_site}
   link=site_link
   search=true
   rows=25
