@@ -243,11 +243,17 @@ ORDER BY
 </div>
 
 <div class="kpi-row">
-  <KpiCard label="Healthy Sites" value={hub_kpis[0].sites_ok} tone="good" />
+  <a href="?status_filter=ok#sites" class="no-underline block">
+    <KpiCard label="Healthy Sites" value={hub_kpis[0].sites_ok} tone="good" />
+  </a>
   <KpiCard label="Unique Ads" value={hub_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
   <KpiCard label="R2 Files" value={hub_kpis[0].total_r2_files?.toLocaleString()} tone="neutral" />
-  <KpiCard label="Open Alerts" value={hub_kpis[0].total_alerts} tone="bad" />
-  <KpiCard label="Sites with Issues" value={hub_kpis[0].sites_failed} tone="bad" />
+  <a href="#alerts" class="no-underline block">
+    <KpiCard label="Open Alerts" value={hub_kpis[0].total_alerts} tone="bad" />
+  </a>
+  <a href="?status_filter=failed#sites" class="no-underline block">
+    <KpiCard label="Sites with Issues" value={hub_kpis[0].sites_failed} tone="bad" />
+  </a>
   <KpiCard label="Missing Reports" value={hub_kpis[0].sites_missing} tone="warn" />
 </div>
 
