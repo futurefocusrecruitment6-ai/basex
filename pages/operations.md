@@ -228,6 +228,8 @@ ORDER BY s.display_name, sc.scraper
   />
 </div>
 
+<div id="by-site-section"></div>
+
 <div class="chart-row">
   <div class="chart-panel">
   <LineChart
@@ -260,7 +262,6 @@ ORDER BY s.display_name, sc.scraper
 
 <Tab label="By website" id="by-site">
 
-<div id="by-site-section">
   <div class="stat-line">
     <strong>{ops_by_site.length}</strong> websites · sorted by req/min descending
   </div>
