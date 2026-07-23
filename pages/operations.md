@@ -228,7 +228,7 @@ ORDER BY s.display_name, sc.scraper
   />
 </div>
 
-<div id="by-site-section"></div>
+<div id="by-site-section" aria-hidden="true">&nbsp;</div>
 
 <div class="chart-row">
   <div class="chart-panel">
