@@ -41,6 +41,8 @@ SELECT
   s.alert_count,
   s.unique_ads,
   s.r2_file_count,
+  COALESCE(s.r2_size_bytes, 0) AS r2_size_bytes,
+  ROUND(COALESCE(s.r2_size_bytes, 0) / POWER(1024, 3), 2) AS r2_size_gb,
   s.workflow_name,
   s.workflow_status,
   s.workflow_duration_sec,
@@ -98,7 +100,9 @@ SELECT
   sc.unique_ads,
   sc.total_rows,
   sc.ads_source,
-  sc.r2_file_count
+  sc.r2_file_count,
+  COALESCE(sc.r2_size_bytes, 0) AS r2_size_bytes,
+  ROUND(COALESCE(sc.r2_size_bytes, 0) / POWER(1024, 2), 2) AS r2_size_mb
 FROM motherduck.scraper_daily sc
 CROSS JOIN target t
 WHERE sc.site_id = '${params.site_id}'
@@ -138,6 +142,8 @@ SELECT
   s.alert_count,
   s.unique_ads,
   s.r2_file_count,
+  COALESCE(s.r2_size_bytes, 0) AS r2_size_bytes,
+  ROUND(COALESCE(s.r2_size_bytes, 0) / POWER(1024, 3), 2) AS r2_size_gb,
   s.workflow_status,
   s.workflow_duration_sec
 FROM motherduck.site_daily s
@@ -186,10 +192,11 @@ ORDER BY s.hub_partition_date DESC
 
 <div class="kpi-row cols-5">
   <KpiCard label="Unique Ads" value={site_summary[0].unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="R2 Size (GB)" value={site_summary[0].r2_size_gb?.toFixed(2)} tone="neutral" />
   <KpiCard label="R2 Files" value={site_summary[0].r2_file_count?.toLocaleString()} tone="neutral" />
   <KpiCard label="Scrapers Passed" value={site_summary[0].scrapers_passed} tone="good" />
   <KpiCard label="Alerts" value={site_summary[0].alert_count} tone="bad" />
-  <KpiCard label="Pass Rate" value="{site_summary[0].pass_pct}%" tone="good" />
+  <KpiCard label="Pass Rate" value={`${site_summary[0].pass_pct}%`} tone="good" />
 </div>
 
 <Details title="Run metadata">
@@ -277,10 +284,35 @@ ORDER BY s.hub_partition_date DESC
   <LineChart
     data={site_history}
     x=hub_partition_date
+    y=r2_size_gb
+    title="R2 size — all history"
+    yAxisTitle="GB"
+    chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+ </div>
+
+<div class="chart-row">
+  <div class="chart-panel">
+  <LineChart
+    data={site_history}
+    x=hub_partition_date
     y=scrapers_passed
     title="Scrapers passed — all history"
     yAxisTitle="Count"
     chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+  <div class="chart-panel">
+  <LineChart
+    data={site_http_history}
+    x=hub_partition_date
+    y=error_rate_pct
+    title="Error rate — all history"
+    yAxisTitle="Error %"
+    chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
   </div>
@@ -294,17 +326,6 @@ ORDER BY s.hub_partition_date DESC
     y=requests_per_min
     title="Request rate — all history"
     yAxisTitle="Req/min"
-    chartAreaHeight=220
-    echartsOptions={{ backgroundColor: 'transparent' }}
-  />
-  </div>
-  <div class="chart-panel">
-  <LineChart
-    data={site_http_history}
-    x=hub_partition_date
-    y=error_rate_pct
-    title="Error rate — all history"
-    yAxisTitle="Error %"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
@@ -330,6 +351,7 @@ ORDER BY s.hub_partition_date DESC
 >
   <Column id=scraper />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=r2_size_mb title="R2 size (MB)" fmt=num2 />
   <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=ads_source title="Source" />
   <Column id=files_found title="Files" />

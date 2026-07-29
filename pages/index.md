@@ -63,6 +63,8 @@ SELECT
   COUNT(*) AS sites_shown,
   COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
   COALESCE(SUM(s.r2_file_count), 0) AS total_r2_files,
+  COALESCE(SUM(s.r2_size_bytes), 0) AS total_r2_size_bytes,
+  ROUND(COALESCE(SUM(s.r2_size_bytes), 0) / POWER(1024, 3), 2) AS total_r2_size_gb,
   MAX(s.hub_partition_date)::VARCHAR AS partition_date,
   MAX(s.inspect_date)::VARCHAR AS inspect_date
 FROM motherduck.site_daily s
@@ -82,6 +84,8 @@ WITH target AS (
 )
 SELECT
   s.*,
+  COALESCE(s.r2_size_bytes, 0) AS r2_size_bytes,
+  ROUND(COALESCE(s.r2_size_bytes, 0) / POWER(1024, 3), 2) AS r2_size_gb,
   s.scrapers_total - s.scrapers_passed AS scrapers_failed,
   ROUND(100.0 * s.scrapers_passed / NULLIF(s.scrapers_total, 0), 1) AS pass_pct,
   '/site/' || s.site_id AS site_link,
@@ -132,7 +136,8 @@ SELECT
   COUNT(*) FILTER (WHERE s.status = 'ok') AS sites_ok,
   COUNT(*) AS sites_count,
   COALESCE(SUM(s.unique_ads), 0) AS total_unique_ads,
-  COALESCE(SUM(s.r2_file_count), 0) AS total_r2_files
+  COALESCE(SUM(s.r2_file_count), 0) AS total_r2_files,
+  ROUND(COALESCE(SUM(s.r2_size_bytes), 0) / POWER(1024, 3), 2) AS total_r2_size_gb
 FROM motherduck.site_daily s
 INNER JOIN site_scope ss ON s.site_id = ss.site_id
 GROUP BY 1
@@ -191,7 +196,9 @@ SELECT
   sc.files_optional,
   sc.unique_ads,
   sc.ads_source,
-  sc.r2_file_count
+  sc.r2_file_count,
+  COALESCE(sc.r2_size_bytes, 0) AS r2_size_bytes,
+  ROUND(COALESCE(sc.r2_size_bytes, 0) / POWER(1024, 2), 2) AS r2_size_mb
 FROM motherduck.scraper_daily sc
 INNER JOIN motherduck.site_daily s
   ON s.hub_partition_date = sc.hub_partition_date
@@ -247,6 +254,7 @@ ORDER BY
     <KpiCard label="Healthy Sites" value={hub_kpis[0].sites_ok} tone="good" />
   </a>
   <KpiCard label="Unique Ads" value={hub_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
+  <KpiCard label="R2 Size (GB)" value={hub_kpis[0].total_r2_size_gb?.toFixed(2)} tone="neutral" />
   <KpiCard label="R2 Files" value={hub_kpis[0].total_r2_files?.toLocaleString()} tone="neutral" />
   <a href="#alerts" class="no-underline block">
     <KpiCard label="Open Alerts" value={hub_kpis[0].total_alerts} tone="bad" />
@@ -282,6 +290,17 @@ ORDER BY
     title="Unique ads — all history"
     yAxisTitle="Listings"
     yFmt=num0
+    chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
+  <div class="chart-panel">
+  <LineChart
+    data={alert_trend}
+    x=hub_partition_date
+    y=total_r2_size_gb
+    title="R2 size — all history"
+    yAxisTitle="GB"
     chartAreaHeight=220
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
@@ -374,6 +393,17 @@ ORDER BY
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
   </div>
+  <div class="chart-panel">
+  <BarChart
+    data={sites_filtered}
+    x=display_name
+    y=r2_size_gb
+    title="R2 size by site (GB)"
+    swapXY=true
+    chartAreaHeight=220
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
 </div>
 
 <div class="dash-table-wrap">
@@ -390,6 +420,7 @@ ORDER BY
   <Column id=proxy_label title="Proxy" />
   <Column id=status_label title="Status" />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=r2_size_gb title="R2 size (GB)" fmt=num2 />
   <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=scrapers_passed title="Passed" />
   <Column id=scrapers_total title="Scrapers" />
@@ -420,6 +451,7 @@ ORDER BY
   <Column id=display_name title="Site" />
   <Column id=scraper />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
+  <Column id=r2_size_mb title="R2 size (MB)" fmt=num2 />
   <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=ads_source title="Count source" />
   <Column id=files_found title="Files" />
