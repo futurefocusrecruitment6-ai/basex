@@ -266,6 +266,7 @@ ORDER BY
 </div>
 
 <div id="sites" aria-hidden="true"></div>
+<div id="alerts" aria-hidden="true"></div>
 
 <div class="dash-panel">
 <Tabs id="hub-main" color=primary fullWidth=true>
