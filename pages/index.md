@@ -265,6 +265,8 @@ ORDER BY
   <KpiCard label="Missing Reports" value={hub_kpis[0].sites_missing} tone="warn" />
 </div>
 
+<div id="sites" aria-hidden="true"></div>
+
 <div class="dash-panel">
 <Tabs id="hub-main" color=primary fullWidth=true>
 
