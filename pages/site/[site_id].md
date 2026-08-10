@@ -43,6 +43,8 @@ SELECT
   s.r2_file_count,
   COALESCE(s.r2_size_bytes, 0) AS r2_size_bytes,
   ROUND(COALESCE(s.r2_size_bytes, 0) / POWER(1024, 3), 2) AS r2_size_gb,
+  COALESCE(s.r2_daily_size, 0) AS r2_daily_size,
+  ROUND(COALESCE(s.r2_daily_size, 0) / POWER(1024, 3), 2) AS r2_daily_size_gb,
   s.workflow_name,
   s.workflow_status,
   s.workflow_duration_sec,
@@ -102,7 +104,9 @@ SELECT
   sc.ads_source,
   sc.r2_file_count,
   COALESCE(sc.r2_size_bytes, 0) AS r2_size_bytes,
-  ROUND(COALESCE(sc.r2_size_bytes, 0) / POWER(1024, 2), 2) AS r2_size_mb
+  ROUND(COALESCE(sc.r2_size_bytes, 0) / POWER(1024, 2), 2) AS r2_size_mb,
+  COALESCE(sc.r2_daily_size, 0) AS r2_daily_size,
+  ROUND(COALESCE(sc.r2_daily_size, 0) / POWER(1024, 2), 2) AS r2_daily_size_mb
 FROM motherduck.scraper_daily sc
 CROSS JOIN target t
 WHERE sc.site_id = '${params.site_id}'
@@ -144,6 +148,8 @@ SELECT
   s.r2_file_count,
   COALESCE(s.r2_size_bytes, 0) AS r2_size_bytes,
   ROUND(COALESCE(s.r2_size_bytes, 0) / POWER(1024, 3), 2) AS r2_size_gb,
+  COALESCE(s.r2_daily_size, 0) AS r2_daily_size,
+  ROUND(COALESCE(s.r2_daily_size, 0) / POWER(1024, 3), 2) AS r2_daily_size_gb,
   s.workflow_status,
   s.workflow_duration_sec
 FROM motherduck.site_daily s
@@ -193,6 +199,7 @@ ORDER BY s.hub_partition_date DESC
 <div class="kpi-row cols-5">
   <KpiCard label="Unique Ads" value={site_summary[0].unique_ads?.toLocaleString()} tone="primary" />
   <KpiCard label="R2 Size (GB)" value={site_summary[0].r2_size_gb?.toFixed(2)} tone="neutral" />
+  <KpiCard label="R2 Daily (GB)" value={site_summary[0].r2_daily_size_gb?.toFixed(2)} tone="neutral" />
   <KpiCard label="R2 Files" value={site_summary[0].r2_file_count?.toLocaleString()} tone="neutral" />
   <KpiCard label="Scrapers Passed" value={site_summary[0].scrapers_passed} tone="good" />
   <KpiCard label="Alerts" value={site_summary[0].alert_count} tone="bad" />
@@ -291,6 +298,17 @@ ORDER BY s.hub_partition_date DESC
     echartsOptions={{ backgroundColor: 'transparent' }}
   />
   </div>
+  <div class="chart-panel">
+  <LineChart
+    data={site_history}
+    x=hub_partition_date
+    y=r2_daily_size_gb
+    title="R2 daily size — all history"
+    yAxisTitle="GB"
+    chartAreaHeight=200
+    echartsOptions={{ backgroundColor: 'transparent' }}
+  />
+  </div>
  </div>
 
 <div class="chart-row">
@@ -352,6 +370,7 @@ ORDER BY s.hub_partition_date DESC
   <Column id=scraper />
   <Column id=unique_ads title="Unique ads" fmt=num0 />
   <Column id=r2_size_mb title="R2 size (MB)" fmt=num2 />
+  <Column id=r2_daily_size_mb title="R2 daily (MB)" fmt=num2 />
   <Column id=r2_file_count title="R2 files" fmt=num0 />
   <Column id=ads_source title="Source" />
   <Column id=files_found title="Files" />
