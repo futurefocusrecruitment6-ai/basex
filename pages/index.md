@@ -226,12 +226,16 @@ WITH target AS (
   WHERE hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
 )
 SELECT
+  a.hub_partition_date::VARCHAR AS hub_partition_date,
+  a.site_id,
   s.display_name,
   a.scraper,
   a.severity,
   a.alert_type,
   a.check_name,
-  a.detail
+  a.detail,
+  a.file_key,
+  a.alert_id
 FROM motherduck.alerts a
 INNER JOIN motherduck.site_daily s
   ON s.hub_partition_date = a.hub_partition_date
@@ -257,17 +261,17 @@ ORDER BY
 </div>
 
 <div class="kpi-row">
-  <a href="?status_filter=ok#sites" class="no-underline block">
+  <a href="?hub-main=sites&status_filter=ok" class="no-underline block">
     <KpiCard label="Healthy Sites" value={hub_kpis[0].sites_ok} tone="good" />
   </a>
   <KpiCard label="Unique Ads" value={hub_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
   <KpiCard label="R2 Size (GB)" value={hub_kpis[0].total_r2_size_gb?.toFixed(2)} tone="neutral" />
   <KpiCard label="R2 Daily (GB)" value={hub_kpis[0].total_r2_daily_size_gb?.toFixed(2)} tone="neutral" />
   <KpiCard label="R2 Files" value={hub_kpis[0].total_r2_files?.toLocaleString()} tone="neutral" />
-  <a href="#alerts" class="no-underline block">
+  <a href="?hub-main=alerts" class="no-underline block">
     <KpiCard label="Open Alerts" value={hub_kpis[0].total_alerts} tone="bad" />
   </a>
-  <a href="?status_filter=failed#sites" class="no-underline block">
+  <a href="?hub-main=sites&status_filter=failed" class="no-underline block">
     <KpiCard label="Sites with Issues" value={hub_kpis[0].sites_failed} tone="bad" />
   </a>
   <KpiCard label="Missing Reports" value={hub_kpis[0].sites_missing} tone="warn" />
@@ -501,6 +505,10 @@ ORDER BY
 
 <Tab label="Alerts" id="alerts">
 
+<div class="not-prose stat-line">
+  Alerts fired — <strong>{alerts_filtered.length}</strong> issue(s)
+</div>
+
 <div class="sev-row">
   <span class="badge badge-bad">Critical <strong>{alerts_filtered.filter(d => d.severity === 'critical').length}</strong></span>
   <span class="badge badge-warn">High <strong>{alerts_filtered.filter(d => d.severity === 'high').length}</strong></span>
@@ -512,16 +520,20 @@ ORDER BY
 <DataTable
   data={alerts_filtered}
   search=true
-  rows=20
+  rows=25
   emptySet=pass
   emptyMessage="No alerts — all scrapers passed for the current filters."
 >
+  <Column id=scraper title="Scraper" />
+  <Column id=severity title="Severity" />
+  <Column id=alert_type title="Alert type" />
+  <Column id=detail title="Detail" />
   <Column id=display_name title="Site" />
-  <Column id=scraper />
-  <Column id=severity />
-  <Column id=alert_type title="Type" />
   <Column id=check_name title="Check" />
-  <Column id=detail />
+  <Column id=file_key title="File" />
+  <Column id=hub_partition_date title="Hub date" />
+  <Column id=site_id title="Site ID" />
+  <Column id=alert_id title="Alert ID" />
 </DataTable>
 </div>
 
