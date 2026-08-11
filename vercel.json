@@ -2,5 +2,11 @@
   "buildCommand": "npm run sources && npm run build",
   "outputDirectory": "build",
   "installCommand": "npm install",
-  "framework": null
+  "framework": null,
+  "functions": {
+    "api/alerts/solved.js": {
+      "memory": 256,
+      "maxDuration": 15
+    }
+  }
 }

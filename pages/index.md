@@ -235,7 +235,8 @@ SELECT
   a.check_name,
   a.detail,
   a.file_key,
-  a.alert_id
+  a.alert_id,
+  COALESCE(a.solved, false) AS solved
 FROM motherduck.alerts a
 INNER JOIN motherduck.site_daily s
   ON s.hub_partition_date = a.hub_partition_date
@@ -247,6 +248,7 @@ WHERE a.hub_partition_date = t.d
   AND COALESCE(s.run_place, 'github') IN ${inputs.run_place_filter.value}
   AND s.status IN ${inputs.status_filter.value}
 ORDER BY
+  CASE WHEN COALESCE(a.solved, false) THEN 1 ELSE 0 END,
   CASE a.severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END,
   s.display_name,
   a.scraper
@@ -516,26 +518,7 @@ ORDER BY
   <span class="badge">Low <strong>{alerts_filtered.filter(d => d.severity === 'low').length}</strong></span>
 </div>
 
-<div class="dash-table-wrap">
-<DataTable
-  data={alerts_filtered}
-  search=true
-  rows=25
-  emptySet=pass
-  emptyMessage="No alerts — all scrapers passed for the current filters."
->
-  <Column id=scraper title="Scraper" />
-  <Column id=severity title="Severity" />
-  <Column id=alert_type title="Alert type" />
-  <Column id=detail title="Detail" />
-  <Column id=display_name title="Site" />
-  <Column id=check_name title="Check" />
-  <Column id=file_key title="File" />
-  <Column id=hub_partition_date title="Hub date" />
-  <Column id=site_id title="Site ID" />
-  <Column id=alert_id title="Alert ID" />
-</DataTable>
-</div>
+<AlertsTable data={alerts_filtered} />
 
 </Tab>
 

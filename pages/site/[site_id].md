@@ -122,17 +122,22 @@ WITH target AS (
     AND s.hub_partition_date::VARCHAR LIKE '${inputs.partition.value}'
 )
 SELECT
+  a.hub_partition_date::VARCHAR AS hub_partition_date,
+  a.site_id,
   a.scraper,
   a.severity,
   a.alert_type,
   a.check_name,
   a.detail,
-  a.file_key
+  a.file_key,
+  a.alert_id,
+  COALESCE(a.solved, false) AS solved
 FROM motherduck.alerts a
 CROSS JOIN target t
 WHERE a.site_id = '${params.site_id}'
   AND a.hub_partition_date = t.d
 ORDER BY
+  CASE WHEN COALESCE(a.solved, false) THEN 1 ELSE 0 END,
   CASE a.severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END,
   a.scraper
 ```
@@ -392,22 +397,11 @@ ORDER BY s.hub_partition_date DESC
   <span class="badge">Low <strong>{site_alerts.filter(d => d.severity === 'low').length}</strong></span>
 </div>
 
-<div class="dash-table-wrap">
-<DataTable
+<AlertsTable
   data={site_alerts}
-  search=true
-  rows=all
-  emptySet=pass
+  showSite={false}
   emptyMessage="No alerts — all validation checks passed."
->
-  <Column id=scraper />
-  <Column id=severity />
-  <Column id=alert_type title="Type" />
-  <Column id=check_name title="Check" />
-  <Column id=detail />
-  <Column id=file_key title="File" />
-</DataTable>
-</div>
+/>
 
 </Tab>
 

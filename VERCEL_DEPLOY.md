@@ -63,9 +63,13 @@ In Vercel → **Project → Settings → Environment Variables**, add:
 
 | Name | Value | Environments |
 |------|--------|----------------|
-| `MOTHERDUCK_TOKEN` | Your MotherDuck service token | Production, Preview, Development |
+| `MOTHERDUCK_TOKEN` | Your MotherDuck service token (**read-write** so Solved checkboxes can update `alerts.solved`) | Production, Preview, Development |
+| `MOTHERDUCK_DATABASE` | Optional; defaults to `monitor_hub` | Production, Preview, Development |
+| `MOTHERDUCK_HOST` | Optional Postgres endpoint host; default `pg.us-east-1-aws.motherduck.com` | Production, Preview, Development |
 
 The database name is fixed in `sources/motherduck/connection.yaml` as `monitor_hub`. If you use a different database, edit that file before deploying.
+
+**Solved alerts:** checking Solved on Overview / site pages calls `POST /api/alerts/solved`, which updates `alerts.solved` in MotherDuck. The token must allow writes. Ensure your hub ingest **preserves** existing `solved` values when reloading alert rows (otherwise daily push can reset checks).
 
 **Do not** commit the token to git. `.env` is gitignored; only set the token in Vercel (and locally in `.env`).
 
