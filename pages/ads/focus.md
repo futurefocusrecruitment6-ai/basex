@@ -437,6 +437,9 @@ WITH target AS (
       WHEN REGEXP_MATCHES(LOWER(COALESCE(s.site_id, '') || ' ' || COALESCE(s.display_name, '') || ' ' || COALESCE(s.website, '')), 'boshamlan|boshmalan') THEN 'boshamlan'
     END AS site_focus,
     GREATEST(COALESCE(s.unique_phones, 0), COALESCE(sp.scraper_unique_phones, 0)) AS unique_phones,
+    COALESCE(s.valid_phones, 0) AS valid_phones,
+    COALESCE(s.invalid_phones, 0) AS invalid_phones,
+    COALESCE(s.outside_country_phones, 0) AS outside_country_phones,
     COALESCE(s.unique_ads, 0) AS unique_ads
   FROM motherduck.site_daily s
   LEFT JOIN scraper_phone sp
@@ -449,6 +452,9 @@ WITH target AS (
 SELECT
   site_focus,
   SUM(unique_phones) AS unique_phones,
+  SUM(valid_phones) AS valid_phones,
+  SUM(invalid_phones) AS invalid_phones,
+  SUM(outside_country_phones) AS outside_country_phones,
   SUM(unique_ads) AS unique_ads,
   COUNT(*) AS sites_count
 FROM scoped
@@ -603,10 +609,17 @@ ORDER BY 1, 2
   >
     <Column id=site_focus title="Website" />
     <Column id=unique_phones title="Unique phones" fmt=num0 />
+    <Column id=valid_phones title="Valid phones" fmt=num0 />
+    <Column id=invalid_phones title="Invalid phones" fmt=num0 />
+    <Column id=outside_country_phones title="Outside country" fmt=num0 />
     <Column id=unique_ads title="Unique ads" fmt=num0 />
     <Column id=sites_count title="Sites" />
   </DataTable>
   </div>
+</div>
+
+<div class="stat-line mt-2">
+  Valid = Kuwait 965 + 8 digits (local first digit 2/4/5/6/9). Invalid = fake/malformed. Outside country = wrong country code (not 965).
 </div>
 
 <div class="chart-row mt-4">
