@@ -65,8 +65,20 @@ SELECT
   COALESCE(SUM(s.r2_file_count), 0) AS total_r2_files,
   COALESCE(SUM(s.r2_size_bytes), 0) AS total_r2_size_bytes,
   ROUND(COALESCE(SUM(s.r2_size_bytes), 0) / POWER(1024, 3), 2) AS total_r2_size_gb,
+  COALESCE(SUM(s.r2_images_bytes), 0) AS total_r2_images_bytes,
+  COALESCE(SUM(s.r2_json_bytes), 0) AS total_r2_json_bytes,
+  COALESCE(SUM(s.r2_excel_bytes), 0) AS total_r2_excel_bytes,
+  COALESCE(SUM(s.r2_csv_bytes), 0) AS total_r2_csv_bytes,
+  COALESCE(SUM(s.r2_parquet_bytes), 0) AS total_r2_parquet_bytes,
+  COALESCE(SUM(s.r2_other_bytes), 0) AS total_r2_other_bytes,
   COALESCE(SUM(s.r2_daily_size), 0) AS total_r2_daily_size_bytes,
   ROUND(COALESCE(SUM(s.r2_daily_size), 0) / POWER(1024, 3), 2) AS total_r2_daily_size_gb,
+  COALESCE(SUM(s.r2_daily_images_bytes), 0) AS total_r2_daily_images_bytes,
+  COALESCE(SUM(s.r2_daily_json_bytes), 0) AS total_r2_daily_json_bytes,
+  COALESCE(SUM(s.r2_daily_excel_bytes), 0) AS total_r2_daily_excel_bytes,
+  COALESCE(SUM(s.r2_daily_csv_bytes), 0) AS total_r2_daily_csv_bytes,
+  COALESCE(SUM(s.r2_daily_parquet_bytes), 0) AS total_r2_daily_parquet_bytes,
+  COALESCE(SUM(s.r2_daily_other_bytes), 0) AS total_r2_daily_other_bytes,
   MAX(s.hub_partition_date)::VARCHAR AS partition_date,
   MAX(s.inspect_date)::VARCHAR AS inspect_date
 FROM motherduck.site_daily s
@@ -267,8 +279,8 @@ ORDER BY
     <KpiCard label="Healthy Sites" value={hub_kpis[0].sites_ok} tone="good" />
   </a>
   <KpiCard label="Unique Ads" value={hub_kpis[0].total_unique_ads?.toLocaleString()} tone="primary" />
-  <KpiCard label="R2 Size (GB)" value={hub_kpis[0].total_r2_size_gb?.toFixed(2)} tone="neutral" />
-  <KpiCard label="R2 Daily (GB)" value={hub_kpis[0].total_r2_daily_size_gb?.toFixed(2)} tone="neutral" />
+  <R2SizeKpi row={hub_kpis[0]} mode="total" />
+  <R2SizeKpi row={hub_kpis[0]} mode="daily" />
   <KpiCard label="R2 Files" value={hub_kpis[0].total_r2_files?.toLocaleString()} tone="neutral" />
   <a href="?hub-main=alerts" class="no-underline block">
     <KpiCard label="Open Alerts" value={hub_kpis[0].total_alerts} tone="bad" />
