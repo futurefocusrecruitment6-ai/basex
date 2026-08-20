@@ -43,8 +43,20 @@ SELECT
   s.r2_file_count,
   COALESCE(s.r2_size_bytes, 0) AS r2_size_bytes,
   ROUND(COALESCE(s.r2_size_bytes, 0) / POWER(1024, 3), 2) AS r2_size_gb,
+  COALESCE(s.r2_images_bytes, 0) AS r2_images_bytes,
+  COALESCE(s.r2_json_bytes, 0) AS r2_json_bytes,
+  COALESCE(s.r2_excel_bytes, 0) AS r2_excel_bytes,
+  COALESCE(s.r2_csv_bytes, 0) AS r2_csv_bytes,
+  COALESCE(s.r2_parquet_bytes, 0) AS r2_parquet_bytes,
+  COALESCE(s.r2_other_bytes, 0) AS r2_other_bytes,
   COALESCE(s.r2_daily_size, 0) AS r2_daily_size,
   ROUND(COALESCE(s.r2_daily_size, 0) / POWER(1024, 3), 2) AS r2_daily_size_gb,
+  COALESCE(s.r2_daily_images_bytes, 0) AS r2_daily_images_bytes,
+  COALESCE(s.r2_daily_json_bytes, 0) AS r2_daily_json_bytes,
+  COALESCE(s.r2_daily_excel_bytes, 0) AS r2_daily_excel_bytes,
+  COALESCE(s.r2_daily_csv_bytes, 0) AS r2_daily_csv_bytes,
+  COALESCE(s.r2_daily_parquet_bytes, 0) AS r2_daily_parquet_bytes,
+  COALESCE(s.r2_daily_other_bytes, 0) AS r2_daily_other_bytes,
   s.workflow_name,
   s.workflow_status,
   s.workflow_duration_sec,
@@ -203,8 +215,8 @@ ORDER BY s.hub_partition_date DESC
 
 <div class="kpi-row cols-5">
   <KpiCard label="Unique Ads" value={site_summary[0].unique_ads?.toLocaleString()} tone="primary" />
-  <KpiCard label="R2 Size (GB)" value={site_summary[0].r2_size_gb?.toFixed(2)} tone="neutral" />
-  <KpiCard label="R2 Daily (GB)" value={site_summary[0].r2_daily_size_gb?.toFixed(2)} tone="neutral" />
+  <R2SizeKpi row={site_summary[0]} mode="total" scope="site" />
+  <R2SizeKpi row={site_summary[0]} mode="daily" scope="site" />
   <KpiCard label="R2 Files" value={site_summary[0].r2_file_count?.toLocaleString()} tone="neutral" />
   <KpiCard label="Scrapers Passed" value={site_summary[0].scrapers_passed} tone="good" />
   <KpiCard label="Alerts" value={site_summary[0].alert_count} tone="bad" />

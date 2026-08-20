@@ -1,6 +1,8 @@
 <script>
 	/** @type {'total' | 'daily'} */
 	export let mode = 'total';
+	/** @type {'hub' | 'site'} */
+	export let scope = 'hub';
 	/** @type {Record<string, any> | null | undefined} */
 	export let row = null;
 
@@ -15,8 +17,18 @@
 
 	let open = false;
 
-	$: prefix = mode === 'daily' ? 'total_r2_daily' : 'total_r2';
-	$: totalBytes = num(row?.[`${prefix}_size_bytes`] ?? row?.total_r2_daily_size);
+	$: prefix =
+		scope === 'site'
+			? mode === 'daily'
+				? 'r2_daily'
+				: 'r2'
+			: mode === 'daily'
+				? 'total_r2_daily'
+				: 'total_r2';
+	$: totalBytes =
+		scope === 'site' && mode === 'daily'
+			? num(row?.r2_daily_size)
+			: num(row?.[`${prefix}_size_bytes`]);
 	$: totalGb = totalBytes / Math.pow(1024, 3);
 	$: cardLabel = mode === 'daily' ? 'R2 Daily (GB)' : 'R2 Size (GB)';
 	$: modalTitle =
